@@ -1,12 +1,15 @@
-import type { PrepareStepFunction, ToolSet } from 'ai'
 import { AGENT_MAX_STEPS } from '@/lib/agent/limits'
 
 export { AGENT_MAX_STEPS, AGENT_MAX_RETRIES, AGENT_BATCH_LIMIT } from '@/lib/agent/limits'
 
-export function prepareAgentStep<TOOLS extends ToolSet>(
-  maxSteps = AGENT_MAX_STEPS,
-): PrepareStepFunction<TOOLS> {
-  return ({ stepNumber, initialInstructions }) => {
+export function prepareAgentStep(maxSteps = AGENT_MAX_STEPS) {
+  return ({
+    stepNumber,
+    initialInstructions,
+  }: {
+    stepNumber: number
+    initialInstructions?: unknown
+  }) => {
     const remaining = Math.max(0, maxSteps - stepNumber)
     const base = typeof initialInstructions === 'string'
       ? initialInstructions

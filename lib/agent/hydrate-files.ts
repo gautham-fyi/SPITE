@@ -1,7 +1,7 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3'
 import { getR2Client, toFalFetchableUrl } from '@/lib/r2-upload'
 import { inferMediaType, isTextAttachment } from '@/lib/agent/attachment-types'
-import type { UIMessage, UIMessagePart } from 'ai'
+import type { UIMessage } from 'ai'
 
 const TEXT_INLINE_LIMIT = 400_000
 const DATA_URL_LIMIT = 8_000_000
@@ -38,7 +38,7 @@ function attachedNote(filename: string | undefined, body: string) {
 export async function hydrateFileParts(messages: UIMessage[]): Promise<UIMessage[]> {
   return Promise.all(
     messages.map(async (message) => {
-      const parts: UIMessagePart[] = []
+      const parts: UIMessage['parts'] = []
       for (const part of message.parts) {
         if (part.type !== 'file' || typeof part.url !== 'string') {
           parts.push(part)
