@@ -1,6 +1,6 @@
 export function SpiteLogo({
   className = 'h-8 w-auto',
-  alt = 'ZtoryMade',
+  alt = 'ztory',
   withWordmark = false,
   wordmarkClassName = 'text-[17px] font-semibold tracking-tight text-foreground',
 }: {
@@ -22,7 +22,7 @@ export function SpiteLogo({
           className={wordmarkClassName}
           style={{ fontFamily: 'var(--font-geist), var(--font-inter), sans-serif' }}
         >
-          ZtoryMade
+          ztory
         </span>
       )}
     </span>

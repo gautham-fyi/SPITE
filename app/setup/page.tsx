@@ -64,7 +64,7 @@ export default async function SetupPage() {
           >
             {allDone
               ? 'Everything is connected. If you just added these values, restart the server (or redeploy) so they take effect.'
-              : 'ZtoryMade runs on your own accounts, so it needs a few connections before it will start. Grab each value and paste it into your environment.'}
+              : 'ztory runs on your own accounts, so it needs a few connections before it will start. Grab each value and paste it into your environment.'}
           </p>
           {schema?.ok && schema.created && (
             <p
@@ -90,7 +90,7 @@ export default async function SetupPage() {
                 boxShadow: '0 10px 34px rgba(107,143,168,0.28)',
               }}
             >
-              Open ZtoryMade
+              Open ztory
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M4 12h15m0 0-6-6m6 6-6 6" />
               </svg>
@@ -285,7 +285,7 @@ export default async function SetupPage() {
                         className="m-0 mt-1 text-[11.5px] leading-relaxed"
                         style={{ fontWeight: 300, color: 'rgba(240,237,230,0.6)' }}
                       >
-                        ZtoryMade tried to create them for you and couldn&apos;t. {schema.error}
+                        ztory tried to create them for you and couldn&apos;t. {schema.error}
                       </p>
                     </div>
                     <ol
@@ -298,7 +298,7 @@ export default async function SetupPage() {
                       </li>
                       <li>
                         Open <span style={{ fontFamily: MONO, color: ICE }}>database-setup.sql</span> from
-                        the ZtoryMade folder, copy everything in it, paste it into the console and press{' '}
+                        the ztory folder, copy everything in it, paste it into the console and press{' '}
                         <span style={{ color: OFF_WHITE }}>Run</span>. It&apos;s safe to run more than once.
                       </li>
                       <li>Come back here and refresh.</li>
@@ -353,14 +353,14 @@ export default async function SetupPage() {
                 className="m-0 mb-2.5 text-[12.5px]"
                 style={{ fontFamily: 'var(--font-montserrat)', fontWeight: 500, color: OFF_WHITE }}
               >
-                Running ZtoryMade on your own computer
+                Running ztory on your own computer
               </p>
               <ol
                 className="m-0 pl-4 flex flex-col gap-1.5 text-[11.5px] leading-relaxed"
                 style={{ fontWeight: 300, color: 'rgba(240,237,230,0.55)' }}
               >
                 <li>
-                  Open the ZtoryMade folder you downloaded. Find the file called{' '}
+                  Open the ztory folder you downloaded. Find the file called{' '}
                   <span style={{ fontFamily: MONO, color: ICE }}>.env.example</span> — it starts with
                   a dot, so on a Mac press Cmd + Shift + . if you can&apos;t see it (Windows shows it by default).
                 </li>
@@ -381,7 +381,7 @@ export default async function SetupPage() {
                 </li>
                 <li>Save the file.</li>
                 <li>
-                  Stop ZtoryMade in the terminal (press{' '}
+                  Stop ztory in the terminal (press{' '}
                   <span style={{ fontFamily: MONO, color: ICE }}>Ctrl + C</span>) and start it again
                   with <span style={{ fontFamily: MONO, color: ICE }}>pnpm dev</span>. It only reads
                   the file on startup, so this step is not optional.
@@ -401,7 +401,7 @@ export default async function SetupPage() {
                 className="m-0 mb-2.5 text-[12.5px]"
                 style={{ fontFamily: 'var(--font-montserrat)', fontWeight: 500, color: OFF_WHITE }}
               >
-                Running ZtoryMade on Vercel
+                Running ztory on Vercel
               </p>
               <ol
                 className="m-0 pl-4 flex flex-col gap-1.5 text-[11.5px] leading-relaxed"
@@ -409,7 +409,7 @@ export default async function SetupPage() {
               >
                 <li>
                   Go to <span style={{ fontFamily: MONO, color: ICE }}>vercel.com</span>, open your
-                  ZtoryMade project, then <span style={{ color: OFF_WHITE }}>Settings → Environment
+                  ztory project, then <span style={{ color: OFF_WHITE }}>Settings → Environment
                   Variables</span>.
                 </li>
                 <li>

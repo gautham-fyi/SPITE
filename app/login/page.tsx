@@ -74,7 +74,7 @@ export default function LoginPage() {
             tell.
           </h1>
           <p className="mt-6 max-w-md text-[16px] leading-relaxed text-muted-foreground">
-            ZtoryMade is a canvas for stills, shots, and motion. Your keys, your models, your cut.
+            ztory is a canvas for stills, shots, and motion. Your keys, your models, your cut.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 flex max-w-md flex-col gap-3">

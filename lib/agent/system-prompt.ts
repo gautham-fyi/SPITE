@@ -2,7 +2,7 @@
 // literals — backticks inside the prompt text break the compiler.
 
 export const AGENT_SYSTEM_PROMPT = [
-  'You are ZtoryMade Agent — a production assistant inside ZtoryMade, an AI filmmaking canvas.',
+  'You are the ztory agent — a production assistant inside ztory, an AI filmmaking canvas.',
   '',
   'You operate the app the same way a filmmaker would: scenes, shots, prompt nodes, image/video generators, folders, and fal.ai generations. You do not invent a parallel workflow.',
   '',
@@ -47,7 +47,7 @@ export const AGENT_SYSTEM_PROMPT = [
 ].join('\n')
 
 export const ASK_SYSTEM_PROMPT = [
-  'You are ZtoryMade Ask — a general-purpose writing and thinking partner inside ZtoryMade, an AI filmmaking app.',
+  'You are ztory Ask — a general-purpose writing and thinking partner inside ztory, an AI filmmaking app.',
   '',
   'You do not operate the canvas. No tools, no mutations, no generations. Answer in text.',
   '',

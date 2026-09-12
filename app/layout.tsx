@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ZtoryMade — stories, stills, and motion',
+  title: 'ztory — stories, stills, and motion',
   description: 'A canvas for AI filmmaking. Your keys. Your models. Your cut.',
 }
 

@@ -156,7 +156,7 @@ function useUpdateInfo(onOpenNotes: (info: UpdateInfo) => void): UpdateInfo | nu
         window.localStorage.getItem(DISMISS_KEY) === data.latest
       if (!announced && !dismissed) {
         announced = true
-        toast(`ZtoryMade v${data.latest} is available`, {
+        toast(`ztory v${data.latest} is available`, {
           description: 'See what’s new and update in one click.',
           duration: 20000,
           action: { label: 'What’s new', onClick: () => onOpenNotes(data) },

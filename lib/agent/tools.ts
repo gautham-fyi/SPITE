@@ -40,7 +40,7 @@ const nodePatchFields = {
 export function createServerTools(projectId?: string) {
   return {
     listProjects: tool({
-      description: 'List all ZtoryMade projects (canvas and Flow).',
+      description: 'List all ztory projects (canvas and Flow).',
       inputSchema: z.object({}),
       execute: async () => {
         const sql = getDb()

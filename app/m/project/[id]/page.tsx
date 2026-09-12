@@ -267,7 +267,7 @@ export default function FlowThread() {
     try {
       const blob = await (await fetch(url)).blob()
       const ext = type === 'video' ? 'mp4' : type === 'audio' ? 'mp3' : 'jpg'
-      const file = new File([blob], `spite-${Date.now()}.${ext}`, { type: blob.type || 'application/octet-stream' })
+      const file = new File([blob], `ztory-${Date.now()}.${ext}`, { type: blob.type || 'application/octet-stream' })
       const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean; share?: (d: { files: File[] }) => Promise<void> }
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) { await nav.share({ files: [file] }); return }
       const obj = URL.createObjectURL(blob)
