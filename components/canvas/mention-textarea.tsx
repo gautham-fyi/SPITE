@@ -137,7 +137,7 @@ function makeChipElement(
   span.contentEditable = 'false'
   const cls = COLOR[folder.type]
   span.className =
-    'mention-chip inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] border align-middle select-none cursor-pointer hover:opacity-90 ' +
+    'mention-chip inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[13px] border align-middle select-none cursor-pointer hover:opacity-90 ' +
     cls
   span.textContent = folder.name
   return span
@@ -520,14 +520,14 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, Props>(function Me
               <div className={`w-5 h-5 rounded flex items-center justify-center ${COLOR[folder.type]}`}>
                 <Icon size={10} weight="fill" />
               </div>
-              <span className="text-[12px] text-foreground/90 truncate flex-1">{folder.name}</span>
-              <span className="text-[10px] text-muted-foreground/60">
+              <span className="text-[14px] text-foreground truncate flex-1">{folder.name}</span>
+              <span className="text-[13px] text-muted-foreground">
                 {selectedIds.size}/{folder.assets.length}
               </span>
             </div>
 
             {folder.assets.length === 0 ? (
-              <div className="py-6 text-center text-[11px] text-muted-foreground/50">
+              <div className="py-6 text-center text-[14px] text-muted-foreground">
                 Folder is empty — add assets to it first.
               </div>
             ) : (
@@ -562,7 +562,7 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, Props>(function Me
               <button
                 type="button"
                 onClick={() => removeChip(folder.id)}
-                className="flex items-center gap-1 px-2 py-1 rounded text-[10px] text-red-400 hover:bg-red-500/10"
+                className="flex items-center gap-1 px-2 py-1 rounded text-[13px] text-red-400 hover:bg-red-500/10"
               >
                 <Trash size={10} />
                 Remove
@@ -570,7 +570,7 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, Props>(function Me
               <button
                 type="button"
                 onClick={() => setPopover(null)}
-                className="ml-auto px-2 py-1 rounded text-[10px] text-muted-foreground hover:text-foreground hover:bg-white/5"
+                className="ml-auto px-2 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5"
               >
                 Done
               </button>
@@ -652,8 +652,8 @@ export const MentionTextarea = forwardRef<MentionTextareaRef, Props>(function Me
                   <Icon size={10} weight="fill" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] text-foreground truncate">{f.name}</div>
-                  <div className="text-[9px] text-muted-foreground/50 capitalize">
+                  <div className="text-[14px] text-foreground truncate">{f.name}</div>
+                  <div className="text-[12px] text-muted-foreground capitalize">
                     {f.type} · {f.assets.length} asset{f.assets.length !== 1 ? 's' : ''}
                   </div>
                 </div>

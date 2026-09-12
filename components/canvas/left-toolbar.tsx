@@ -635,8 +635,8 @@ export function LeftToolbar({
                   they survive cleanup until you delete them yourself. */}
               <div className="mt-4 pt-4 border-t border-border/30 space-y-1">
                 <div className="px-3 pb-1 flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Folders</span>
-                  <span className="text-[10px] text-muted-foreground/40">{folders.length}</span>
+                  <span className="text-[12px] text-muted-foreground uppercase tracking-wider">Folders</span>
+                  <span className="text-[12px] text-muted-foreground">{folders.length}</span>
                 </div>
                 {(['character', 'prop', 'location', 'general'] as const).map(t => {
                   const ofType = folders.filter(f => f.type === t)
@@ -664,14 +664,14 @@ export function LeftToolbar({
                           className="flex-1 flex items-center gap-2 text-left"
                         >
                           <Icon size={12} className={isActive ? 'text-accent' : 'text-accent/80'} />
-                          <span className="text-[11px] text-foreground/80 group-hover:text-foreground tracking-wide flex-1">{label}</span>
-                          <span className="text-[10px] text-muted-foreground/50">{ofType.length}</span>
+                          <span className="text-[13px] text-foreground group-hover:text-foreground tracking-wide flex-1">{label}</span>
+                          <span className="text-[12px] text-muted-foreground">{ofType.length}</span>
                         </button>
                       </div>
                       {isOpen && (
                         <div className="pl-2 mt-0.5 space-y-0.5">
                           {ofType.length === 0 ? (
-                            <div className="px-3 py-1.5 text-[10px] text-muted-foreground/30 italic">
+                            <div className="px-3 py-1.5 text-[13px] text-muted-foreground italic">
                               No {label.toLowerCase()} yet
                             </div>
                           ) : (
@@ -699,8 +699,8 @@ export function LeftToolbar({
                                       <Icon size={11} className="text-muted-foreground/30" />
                                     )}
                                   </div>
-                                  <span className="flex-1 truncate text-[12px] text-foreground/80">{f.name}</span>
-                                  <span className="text-[10px] text-muted-foreground/50 shrink-0">{f.assets.length}</span>
+                                  <span className="flex-1 truncate text-[14px] text-foreground">{f.name}</span>
+                                  <span className="text-[12px] text-muted-foreground shrink-0">{f.assets.length}</span>
                                 </button>
                               )
                             })
@@ -1540,8 +1540,8 @@ export function LeftToolbar({
                                   </div>
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-foreground truncate">{folder.name}</div>
-                              <div className="text-[9px] text-muted-foreground/50">{folder.assets.length} assets</div>
+                              <div className="text-[13px] text-foreground truncate">{folder.name}</div>
+                              <div className="text-[12px] text-muted-foreground">{folder.assets.length} assets</div>
                             </button>
                           ))}
                         </div>
@@ -1581,8 +1581,8 @@ export function LeftToolbar({
                                   </div>
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-foreground truncate">{folder.name}</div>
-                              <div className="text-[9px] text-muted-foreground/50">{folder.assets.length} assets</div>
+                              <div className="text-[13px] text-foreground truncate">{folder.name}</div>
+                              <div className="text-[12px] text-muted-foreground">{folder.assets.length} assets</div>
                             </button>
                           ))}
                         </div>
@@ -1622,8 +1622,8 @@ export function LeftToolbar({
                                   </div>
                                 )}
                               </div>
-                              <div className="text-[10px] font-mono text-foreground truncate">{folder.name}</div>
-                              <div className="text-[9px] text-muted-foreground/50">{folder.assets.length} assets</div>
+                              <div className="text-[13px] text-foreground truncate">{folder.name}</div>
+                              <div className="text-[12px] text-muted-foreground">{folder.assets.length} assets</div>
                             </button>
                           ))}
                         </div>

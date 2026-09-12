@@ -178,7 +178,7 @@ export function ProjectCard({ id, name, thumbnail, lastModified, genre, href, on
             {/* Genre tag */}
             {genre && (
               <div className="absolute top-3 right-3">
-                <span className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-full glass border border-accent/30 text-accent/80">
+                <span className="text-[11px] tracking-widest uppercase px-2 py-0.5 rounded-full glass border border-accent/30 text-accent">
                   {genre}
                 </span>
               </div>
@@ -188,14 +188,14 @@ export function ProjectCard({ id, name, thumbnail, lastModified, genre, href, on
           {/* Card footer */}
           <div className="px-4 py-3 flex flex-col gap-1 border-t border-white/5">
             <h3
-              className="text-base leading-snug text-foreground truncate group-hover:text-accent transition-colors duration-200"
+              className="text-lg leading-snug text-foreground truncate group-hover:text-accent transition-colors duration-200"
               style={{ fontFamily: 'var(--font-montserrat)' }}
             >
               {name}
             </h3>
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <ClockCounterClockwise size={11} weight="thin" />
-              <time className="text-[10px] tracking-wide">{lastModified}</time>
+              <ClockCounterClockwise size={14} weight="thin" />
+              <time className="text-[13px] tracking-wide">{lastModified}</time>
             </div>
           </div>
         </article>

@@ -194,7 +194,7 @@ export async function toFalFetchableUrl(
   const marker = '/api/r2-image/'
   const idx = url.indexOf(marker)
   if (idx === -1) return url // already absolute, externally-fetchable
-  const key = url.slice(idx + marker.length)
+  const key = decodeURIComponent(url.slice(idx + marker.length).split('?')[0])
   const command = new GetObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,
     Key: key,

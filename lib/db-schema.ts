@@ -188,6 +188,17 @@ CREATE TABLE IF NOT EXISTS voice_id_cache (
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 
+-- Agent threads: persisted sidebar chats (title + full UI message history).
+CREATE TABLE IF NOT EXISTS agent_threads (
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    title       text NOT NULL DEFAULT 'New chat',
+    project_id  text,
+    surface     text NOT NULL DEFAULT 'canvas',
+    messages    jsonb NOT NULL DEFAULT '[]'::jsonb,
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
 -- Helpful indexes for the most common lookups.
 CREATE INDEX IF NOT EXISTS idx_generation_history_project ON generation_history (project_id);
 CREATE INDEX IF NOT EXISTS idx_assets_project           ON assets (projectid);
@@ -200,6 +211,7 @@ CREATE INDEX IF NOT EXISTS idx_auth_attempts_ip_time    ON auth_attempts (ip, at
 CREATE INDEX IF NOT EXISTS idx_spend_ledger_time        ON spend_ledger (created_at);
 CREATE INDEX IF NOT EXISTS idx_spend_ledger_request     ON spend_ledger (request_id);
 CREATE INDEX IF NOT EXISTS idx_genhistory_project_created ON generation_history (project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_threads_updated ON agent_threads (updated_at DESC);
 `
 
 // Split into individual statements. The file is plain CREATE / ALTER with no

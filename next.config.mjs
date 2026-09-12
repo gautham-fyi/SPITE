@@ -11,6 +11,7 @@ const BUILD_STAMP = new Date().toLocaleString('en-GB', {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false,
   typescript: {
     // Type errors fail the build. The codebase is TS-strict and currently
     // type-clean, so this just stops a future type regression from silently

@@ -22,6 +22,10 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { ScissorsEdge } from './edges/scissors-edge'
+import { AgentChatPanel } from '@/components/agent/agent-chat-panel'
+import { CanvasAgentProvider, defaultHandles, normalizeShotId, type AddNodeInput, type CanvasAgentApi, type NodePatch } from '@/components/agent/canvas-agent-context'
+import { AGENT_BATCH_LIMIT } from '@/lib/agent/limits'
+import { getModelById, resolveModelId } from '@/lib/fal-models'
 import {
   getConnectorAnimation,
   CONNECTOR_ANIMATION_EVENT,
@@ -30,6 +34,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { useCanvasAutoSave } from '@/hooks/use-canvas-auto-save'
 import { CanvasToolbar } from './canvas-toolbar'
+import { arrangeShotsLayout } from './arrange-shots'
 import { nodeHasNoMedia } from '@/lib/node-media'
 import { OnboardingTour } from '@/components/onboarding/use-onboarding-tour'
 import { JobsPanel } from './jobs-panel'
@@ -206,6 +211,60 @@ function makeNode(
   }
 }
 
+function agentNodeData(input: AddNodeInput) {
+  const initialData: Record<string, unknown> = {}
+  if (input.prompt) {
+    if (input.type === 'prompt' || input.type === 'comment') initialData.text = input.prompt
+    else initialData.prompt = input.prompt
+  }
+  if (input.modelId) initialData.modelId = resolveModelId(input.modelId) || input.modelId
+  if (input.shotId) initialData.shotId = normalizeShotId(input.shotId) || input.shotId
+  if (input.aspectRatio) initialData.aspectRatio = input.aspectRatio
+  if (input.resolution) initialData.resolution = input.resolution
+  if (typeof input.numImages === 'number') initialData.numImages = Math.max(1, Math.min(12, input.numImages))
+  if (input.duration) initialData.duration = input.duration
+  if (input.assetUrl) {
+    initialData.assetUrl = input.assetUrl
+    initialData.outputUrl = input.assetUrl
+    initialData.thumbnail = input.assetUrl
+  }
+  return initialData
+}
+
+function applyAgentPatch(node: Node, patch: NodePatch): { ok: true; node: Node } | { ok: false; error: string } {
+  const current = node.data as Record<string, unknown>
+  const nextModelId = patch.modelId !== undefined
+    ? (resolveModelId(patch.modelId) || patch.modelId)
+    : (current.modelId as string | undefined)
+  const model = nextModelId ? getModelById(nextModelId) : undefined
+  if (patch.aspectRatio && model?.aspectRatios.length && !model.aspectRatios.includes(patch.aspectRatio)) {
+    return { ok: false, error: `Aspect ${patch.aspectRatio} is not valid for ${model.name}. Use: ${model.aspectRatios.join(', ')}` }
+  }
+  if (patch.resolution && model?.resolutions?.length && !model.resolutions.includes(patch.resolution)) {
+    return { ok: false, error: `Resolution ${patch.resolution} is not valid for ${model.name}. Use: ${model.resolutions.join(', ')}` }
+  }
+  if (patch.duration && model?.durations?.length && !model.durations.includes(patch.duration)) {
+    return { ok: false, error: `Duration ${patch.duration} is not valid for ${model.name}. Use: ${model.durations.join(', ')}` }
+  }
+  const data = { ...current }
+  if (patch.prompt !== undefined) {
+    if (node.type === 'prompt' || node.type === 'comment') data.text = patch.prompt
+    else data.prompt = patch.prompt
+  }
+  if (patch.text !== undefined) data.text = patch.text
+  if (patch.label !== undefined) data.label = patch.label
+  if (patch.modelId !== undefined) data.modelId = nextModelId
+  if (patch.shotId !== undefined) {
+    const shot = normalizeShotId(patch.shotId)
+    data.shotId = shot || undefined
+  }
+  if (patch.aspectRatio !== undefined) data.aspectRatio = patch.aspectRatio
+  if (patch.resolution !== undefined) data.resolution = patch.resolution
+  if (typeof patch.numImages === 'number') data.numImages = Math.max(1, Math.min(12, Math.round(patch.numImages)))
+  if (patch.duration !== undefined) data.duration = patch.duration
+  return { ok: true, node: { ...node, data } }
+}
+
 // Initial demo data
 const INITIAL_SCENES: Scene[] = [
   { id: 'scene-1', name: 'Scene 1', shots: [] },
@@ -293,6 +352,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
   // Right-side jobs panel: open/close state lives here so the panel
   // survives canvas re-renders and stays open while the user pans/zooms.
   const [jobsPanelOpen, setJobsPanelOpen] = useState(false)
+  const [agentOpen, setAgentOpen] = useState(true)
   // Count of jobs currently running on this canvas — used to show a
   // small accent dot on the toolbar's Jobs button so the user knows
   // something is in flight even when the panel is closed.
@@ -310,7 +370,9 @@ function CanvasInner({ projectId }: { projectId: string }) {
   const [activeTool, setActiveTool] = useState<'select' | 'cut' | 'sticker' | 'comment'>('select')
 
   // Auto-save hook
-  const { saveCanvas, saveStatus } = useCanvasAutoSave(projectId, nodes, edges, scenes, activeSceneId)
+  const { saveCanvas, saveStatus, markSynced } = useCanvasAutoSave(projectId, nodes, edges, scenes, activeSceneId)
+  const markSyncedRef = useRef(markSynced)
+  markSyncedRef.current = markSynced
 
   // Load canvas data and assets on mount
   useEffect(() => {
@@ -339,20 +401,35 @@ function CanvasInner({ projectId }: { projectId: string }) {
             scenes: savedScenes,
             activeSceneId: savedActiveSceneId,
           } = await canvasResponse.json()
+          const nextNodes = Array.isArray(savedNodes) ? savedNodes : []
+          const nextEdges = Array.isArray(savedEdges) ? savedEdges : []
           if (savedNodes && savedEdges) {
-            setNodes(savedNodes)
-            setEdges(savedEdges)
+            setNodes(nextNodes)
+            setEdges(nextEdges)
           }
+          let nextScenes = scenes
           if (Array.isArray(savedScenes) && savedScenes.length > 0) {
             // Saved scenes are bare {id, name}; the in-memory shape
             // includes shots[] which scenesWithShots derives from
             // nodes. Initialise with empty shots so the derivation
             // runs cleanly on the next render.
-            setScenes(savedScenes.map((s: any) => ({ id: s.id, name: s.name, shots: [] })))
+            nextScenes = savedScenes.map((s: any) => ({ id: s.id, name: s.name, shots: [] }))
+            setScenes(nextScenes)
           }
+          const nextActive = typeof savedActiveSceneId === 'string' && savedActiveSceneId
+            ? savedActiveSceneId
+            : activeSceneId
           if (typeof savedActiveSceneId === 'string' && savedActiveSceneId) {
             setActiveSceneId(savedActiveSceneId)
           }
+          markSyncedRef.current({
+            nodes: nextNodes,
+            edges: nextEdges,
+            scenes: nextScenes.map((s) => ({ id: s.id, name: s.name })),
+            activeSceneId: nextActive,
+          })
+        } else {
+          markSyncedRef.current()
         }
 
         // Viewport restore is handled up-front by <ViewportPersistor> (on mount,
@@ -366,6 +443,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
         }
       } catch (error) {
         console.error('Error loading data:', error)
+        markSyncedRef.current()
       }
     }
 
@@ -489,8 +567,21 @@ function CanvasInner({ projectId }: { projectId: string }) {
   
   const [minimapOpen, setMinimapOpen] = useState(true)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; flowPos: { x: number; y: number } } | null>(null)
-  const { fitView, screenToFlowPosition, setCenter, getNodes } = useReactFlow()
+  const { fitView, screenToFlowPosition, setCenter, getNodes, getEdges } = useReactFlow()
   const flowRef = useRef<HTMLDivElement>(null)
+
+  const handleArrangeShots = useCallback(() => {
+    const positions = arrangeShotsLayout(getNodes(), getEdges(), activeSceneId)
+    if (!positions) {
+      toast.info('Tag nodes as shots first — Arrange lines them up in shot order.')
+      return
+    }
+    setNodes(ns => ns.map(n => {
+      const next = positions.get(n.id)
+      return next ? { ...n, position: next } : n
+    }))
+    requestAnimationFrame(() => fitView({ duration: 300, padding: 0.15 }))
+  }, [activeSceneId, fitView, getEdges, getNodes, setNodes])
 
   const addNode = useCallback((type: string, flowPos?: { x: number; y: number }, initialData?: Record<string, any>) => {
     const pos = flowPos || screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
@@ -555,6 +646,207 @@ function CanvasInner({ projectId }: { projectId: string }) {
       (es as Edge[]).filter(e => !doomedNodeIds.has(e.source) && !doomedNodeIds.has(e.target)),
     )
   }, [activeSceneId, setNodes, setEdges, getNodes])
+
+  const agentApi = useMemo<CanvasAgentApi>(() => ({
+    projectId,
+    inspect: () => ({
+      projectName,
+      activeSceneId,
+      scenes: scenes.map(s => ({ id: s.id, name: s.name })),
+      nodes: nodes.map(n => {
+        const d = n.data as Record<string, unknown>
+        return {
+          id: n.id,
+          type: n.type || 'unknown',
+          sceneId: d.sceneId as string | undefined,
+          shotId: d.shotId as string | undefined,
+          label: d.label as string | undefined,
+          prompt: (d.prompt as string | undefined) || (d.text as string | undefined),
+          modelId: d.modelId as string | undefined,
+          aspectRatio: d.aspectRatio as string | undefined,
+          resolution: d.resolution as string | undefined,
+          numImages: typeof d.numImages === 'number' ? d.numImages : undefined,
+          duration: d.duration as string | undefined,
+          status: d.status as string | undefined,
+          outputUrl: d.outputUrl as string | undefined,
+          x: n.position.x,
+          y: n.position.y,
+        }
+      }),
+    }),
+    addScene: (name) => {
+      let maxNum = 0
+      for (const s of scenes) {
+        const m = s.name.match(/^Scene (\d+)$/)
+        if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10))
+      }
+      const newScene: Scene = {
+        id: makeSceneId(),
+        name: name?.trim() || `Scene ${maxNum + 1}`,
+        shots: [],
+      }
+      setScenes(s => [...s, newScene])
+      setActiveSceneId(newScene.id)
+      return { id: newScene.id, name: newScene.name }
+    },
+    renameScene: (sceneId, name) => {
+      if (!scenes.some(s => s.id === sceneId)) return { ok: false, error: 'Scene not found' }
+      setScenes(prev => prev.map(s => s.id === sceneId ? { ...s, name } : s))
+      return { ok: true }
+    },
+    deleteScene: (sceneId) => {
+      if (scenes.length <= 1) return { ok: false, error: 'Keep at least one scene' }
+      if (!scenes.some(s => s.id === sceneId)) return { ok: false, error: 'Scene not found' }
+      handleDeleteScene(sceneId)
+      return { ok: true }
+    },
+    switchScene: (sceneId) => {
+      if (!scenes.some(s => s.id === sceneId)) return { ok: false, error: 'Scene not found' }
+      setActiveSceneId(sceneId)
+      return { ok: true }
+    },
+    addNode: (input) => {
+      const sceneId = input.sceneId || activeSceneId
+      const existing = nodes.filter(n => (n.data as Record<string, unknown>).sceneId === sceneId).length
+      const x = input.x ?? 180 + (existing % 4) * 420
+      const y = input.y ?? 180 + Math.floor(existing / 4) * 320
+      const node = makeNode(input.type, { x, y }, input.label, sceneId, agentNodeData(input))
+      setNodes(ns => [...ns, node as Node])
+      return { id: node.id }
+    },
+    addNodes: (inputs) => {
+      const batch = inputs.slice(0, AGENT_BATCH_LIMIT)
+      const counts = new Map<string, number>()
+      const created = batch.map((input) => {
+        const sceneId = input.sceneId || activeSceneId
+        const used = counts.get(sceneId)
+          ?? nodes.filter(n => (n.data as Record<string, unknown>).sceneId === sceneId).length
+        counts.set(sceneId, used + 1)
+        const x = input.x ?? 180 + (used % 4) * 420
+        const y = input.y ?? 180 + Math.floor(used / 4) * 320
+        return makeNode(input.type, { x, y }, input.label, sceneId, agentNodeData(input))
+      })
+      setNodes(ns => [...ns, ...created as Node[]])
+      return {
+        nodes: created.map((n) => ({
+          id: n.id,
+          type: n.type,
+          shotId: (n.data as Record<string, unknown>).shotId as string | undefined,
+          label: (n.data as Record<string, unknown>).label as string | undefined,
+        })),
+      }
+    },
+    updateNode: (nodeId, patch) => {
+      const node = nodes.find(n => n.id === nodeId)
+      if (!node) return { ok: false, error: 'Node not found' }
+      const next = applyAgentPatch(node, patch)
+      if (!next.ok) return { ok: false, error: next.error }
+      setNodes(ns => ns.map(n => n.id === nodeId ? next.node : n))
+      return { ok: true }
+    },
+    updateNodes: (patches) => {
+      const updated: string[] = []
+      const failed: { nodeId: string; error: string }[] = []
+      const applied = new Map<string, Node>()
+      for (const patch of patches.slice(0, AGENT_BATCH_LIMIT)) {
+        const node = applied.get(patch.nodeId) || nodes.find(n => n.id === patch.nodeId)
+        if (!node) {
+          failed.push({ nodeId: patch.nodeId, error: 'Node not found' })
+          continue
+        }
+        const next = applyAgentPatch(node, patch)
+        if (!next.ok) {
+          failed.push({ nodeId: patch.nodeId, error: next.error })
+          continue
+        }
+        applied.set(patch.nodeId, next.node)
+        updated.push(patch.nodeId)
+      }
+      if (applied.size) {
+        setNodes(ns => ns.map(n => applied.get(n.id) || n))
+      }
+      return { updated, failed }
+    },
+    deleteNodes: (nodeIds) => {
+      const doomed = new Set(nodeIds)
+      setNodes(ns => ns.filter(n => !doomed.has(n.id)))
+      setEdges(es => es.filter(e => !doomed.has(e.source) && !doomed.has(e.target)))
+      return { ok: true, removed: nodeIds.length }
+    },
+    connectNodes: (sourceId, targetId, sourceHandle, targetHandle) => {
+      const source = nodes.find(n => n.id === sourceId)
+      const target = nodes.find(n => n.id === targetId)
+      if (!source || !target) return { ok: false, error: 'Source or target node not found' }
+      const handles = defaultHandles(source.type, target.type)
+      setEdges(es => addEdge({
+        source: sourceId,
+        target: targetId,
+        sourceHandle: sourceHandle || handles.sourceHandle,
+        targetHandle: targetHandle || handles.targetHandle,
+      }, es))
+      return { ok: true }
+    },
+    connectMany: (pairs) => {
+      const failed: { sourceId: string; targetId: string; error: string }[] = []
+      let next = edges
+      let connected = 0
+      for (const pair of pairs.slice(0, AGENT_BATCH_LIMIT)) {
+        const source = nodes.find(n => n.id === pair.sourceId)
+        const target = nodes.find(n => n.id === pair.targetId)
+        if (!source || !target) {
+          failed.push({ sourceId: pair.sourceId, targetId: pair.targetId, error: 'Source or target node not found' })
+          continue
+        }
+        const handles = defaultHandles(source.type, target.type)
+        next = addEdge({
+          source: pair.sourceId,
+          target: pair.targetId,
+          sourceHandle: pair.sourceHandle || handles.sourceHandle,
+          targetHandle: pair.targetHandle || handles.targetHandle,
+        }, next)
+        connected += 1
+      }
+      setEdges(next)
+      return { connected, failed }
+    },
+    generateNode: (nodeId) => {
+      const node = nodes.find(n => n.id === nodeId)
+      if (!node) return { ok: false, error: 'Node not found' }
+      if (node.type !== 'imageGen' && node.type !== 'videoGen') {
+        return { ok: false, error: 'Only imageGen and videoGen nodes can generate' }
+      }
+      window.dispatchEvent(new CustomEvent('spite:agent-generate', { detail: { nodeId } }))
+      return { ok: true }
+    },
+    generateNodes: (nodeIds) => {
+      const started: string[] = []
+      const failed: { nodeId: string; error: string }[] = []
+      for (const nodeId of nodeIds.slice(0, 20)) {
+        const node = nodes.find(n => n.id === nodeId)
+        if (!node) {
+          failed.push({ nodeId, error: 'Node not found' })
+          continue
+        }
+        if (node.type !== 'imageGen' && node.type !== 'videoGen') {
+          failed.push({ nodeId, error: 'Only imageGen and videoGen nodes can generate' })
+          continue
+        }
+        window.dispatchEvent(new CustomEvent('spite:agent-generate', { detail: { nodeId } }))
+        started.push(nodeId)
+      }
+      return { started, failed }
+    },
+    focusNode: (nodeId) => {
+      const node = nodes.find(n => n.id === nodeId)
+      if (!node) return { ok: false, error: 'Node not found' }
+      setCenter(node.position.x + 180, node.position.y + 140, { duration: 400, zoom: 1 })
+      return { ok: true }
+    },
+    renameProject: (name) => {
+      handleProjectNameChange(name)
+      return { ok: true }
+    },
+  }), [projectId, projectName, scenes, activeSceneId, nodes, edges, handleDeleteScene, setNodes, setEdges, setCenter])
 
   // Asset handlers
   const handleSelectAsset = useCallback((asset: Asset) => {}, [])
@@ -948,9 +1240,26 @@ function CanvasInner({ projectId }: { projectId: string }) {
     }
 
     function onKeyDown(e: KeyboardEvent) {
+      const ctrl = e.ctrlKey || e.metaKey
+
+      if (ctrl && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault()
+        void saveCanvas(true)
+        return
+      }
+
       if (isEditingText(e.target)) return
 
-      const ctrl = e.ctrlKey || e.metaKey
+      // Select every node on this scene. Prevent the browser from
+      // highlighting labels/prompts as if this were a text page.
+      if (ctrl && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault()
+        setNodes(ns => ns.map(n => ({
+          ...n,
+          selected: n.data.sceneId === activeSceneId,
+        })))
+        return
+      }
 
       // Undo/Redo
       if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo() }
@@ -1031,7 +1340,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('paste', onPaste)
     }
-  }, [addNode, deleteSelected, duplicateSelected, pasteImageFile, setNodes, setEdges, undo, redo])
+  }, [activeSceneId, addNode, deleteSelected, duplicateSelected, pasteImageFile, setNodes, setEdges, undo, redo, saveCanvas])
 
   const onContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -1131,7 +1440,8 @@ function CanvasInner({ projectId }: { projectId: string }) {
   }, [fitView])
 
   return (
-    <div className="flex flex-col h-screen bg-[#080A0C] overflow-hidden">
+    <CanvasAgentProvider value={agentApi}>
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       <OnboardingTour surface="canvas" />
       {/* Scene Timeline */}
       <SceneTimeline
@@ -1148,18 +1458,19 @@ function CanvasInner({ projectId }: { projectId: string }) {
       <CanvasToolbar
         projectName={projectName}
         onProjectNameChange={handleProjectNameChange}
-        saveStatus={saveStatus === 'saving' ? 'unsaved' : saveStatus}
+        saveStatus={saveStatus}
         projectId={projectId}
         jobsPanelOpen={jobsPanelOpen}
         onToggleJobsPanel={() => setJobsPanelOpen(v => !v)}
         activeJobCount={activeJobCount}
+        onArrangeShots={handleArrangeShots}
+        agentOpen={agentOpen}
+        onToggleAgent={() => setAgentOpen(v => !v)}
       />
 
-      {/* Right-side jobs panel — fixed position, doesn't capture canvas
-          clicks so the user can pan/zoom/edit while it stays open. */}
+      <div className="flex flex-1 min-h-0">
+      <div className="flex-1 relative min-w-0" ref={flowRef} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave}>
       <JobsPanel open={jobsPanelOpen} onClose={() => setJobsPanelOpen(false)} />
-
-      <div className="flex-1 relative" ref={flowRef} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave}>
         {isDragOver && (
           <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center border-2 border-dashed border-accent/60 bg-accent/5 rounded-lg">
             <div className="flex flex-col items-center gap-2 text-accent/80">
@@ -1216,17 +1527,18 @@ function CanvasInner({ projectId }: { projectId: string }) {
               }}
               nodeTypes={NODE_TYPES}
               onContextMenu={onContextMenu}
-              selectionOnDrag
               selectionMode={SelectionMode.Partial}
-              panOnDrag={[1, 2]}
+              panOnDrag
+              panOnScroll
               zoomOnScroll
+              zoomOnPinch
               minZoom={0.1}
               maxZoom={4}
               style={{ 
-                background: '#0D0F12',
+                background: 'var(--canvas)',
                 cursor: activeTool === 'cut' ? 'crosshair' :
                        activeTool === 'sticker' ? 'none' :
-                       activeTool === 'comment' ? 'copy' : 'default'
+                       activeTool === 'comment' ? 'copy' : 'grab'
               }}
               proOptions={{ hideAttribution: true }}
               // Cull off-screen nodes. React Flow renders EVERY node by default
@@ -1239,7 +1551,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
               edgeTypes={EDGE_TYPES}
               defaultEdgeOptions={{
                 type: 'scissors',
-                style: { stroke: '#6B8FA8', strokeWidth: 2 },
+                style: { stroke: '#8B6CF5', strokeWidth: 2 },
                 animated: false,
               }}
             >
@@ -1247,7 +1559,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
                 variant={BackgroundVariant.Dots}
                 gap={24}
                 size={1.5}
-                color="#2a2e34"
+                color="var(--canvas-dot)"
               />
 
               {minimapOpen && (
@@ -1315,6 +1627,14 @@ function CanvasInner({ projectId }: { projectId: string }) {
         <ViewportPersistor projectId={projectId} />
         <BottomBar page={scenes.findIndex(s => s.id === activeSceneId) + 1} onRecenter={handleRecenter} />
       </div>
+      {agentOpen && (
+        <AgentChatPanel
+          surface="canvas"
+          projectId={projectId}
+          onClose={() => setAgentOpen(false)}
+        />
+      )}
+      </div>
 
       {/* Context menu backdrop + menu */}
       {contextMenu && (
@@ -1347,6 +1667,7 @@ function CanvasInner({ projectId }: { projectId: string }) {
         </>
       )}
     </div>
+    </CanvasAgentProvider>
   )
 }
 

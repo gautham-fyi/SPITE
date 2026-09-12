@@ -179,7 +179,7 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
           onNewShot={handleNewShot}
           onReplace={handleShotReplace}
         />
-        <span className="text-[10px] font-mono text-muted-foreground/60 truncate max-w-[200px]">
+        <span className="text-[13px] text-muted-foreground truncate max-w-[200px]">
           {(data.label as string) || 'Reference'}
         </span>
       </div>
@@ -200,7 +200,7 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
           width: 24,
           height: 24,
           borderRadius: '50%',
-          background: '#111316',
+          background: 'var(--node-handle)',
           border: `1.5px solid ${
             isAudio ? 'rgba(251,191,36,0.85)' :
             isVideo ? 'rgba(244,114,182,0.85)' :
@@ -222,16 +222,8 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
 
       {/* Card */}
       <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          width: imageWidth,
-          background: '#0D0F12',
-          border: isTaggedToShot 
-            ? '1.5px solid rgba(251,191,36,0.7)' 
-            : selected 
-              ? '1.5px solid rgba(107,143,168,0.85)' 
-              : '1.5px solid rgba(107,143,168,0.25)',
-        }}
+        className={`canvas-node rounded-xl overflow-hidden${isTaggedToShot ? ' is-tagged' : selected ? ' is-selected' : ''}`}
+        style={{ width: imageWidth }}
       >
         {/* Media area */}
         {thumbnail ? (
@@ -276,10 +268,10 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
 
         {/* Footer */}
         <div className="flex items-center justify-between px-3 py-2">
-          <span className="text-[10px] font-mono text-muted-foreground truncate">
+          <span className="text-[13px] text-muted-foreground truncate">
             {(data.label as string) || 'reference'}
           </span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground">REF</span>
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--node-chip)] text-muted-foreground">REF</span>
         </div>
       </div>
 
@@ -295,7 +287,7 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
           <path
             d="M 0 28 A 28 28 0 0 0 28 0"
             fill="none"
-            stroke="rgba(255,255,255,0.5)"
+            stroke="var(--muted-foreground)"
             strokeWidth="2"
           />
         </svg>

@@ -8,11 +8,13 @@ __v0_jsx-dev-runtime.ts
 
 # Environment variables
 .env*.local
+.neon
 
 # Common ignores
 node_modules
 .next/
 .DS_Store
+._*
 .vercel
 
 # Build cache

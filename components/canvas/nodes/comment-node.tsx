@@ -41,9 +41,9 @@ function CommentNodeImpl({ id, data, selected }: NodeProps) {
     <div
       className="relative group flex items-center gap-2 px-3 py-2 rounded-full transition-all nodrag"
       style={{
-        background: 'rgba(30,32,38,0.95)',
-        border: selected ? '1px solid rgba(107,143,168,0.6)' : '1px solid rgba(255,255,255,0.1)',
-        boxShadow: selected ? '0 0 12px rgba(107,143,168,0.2)' : '0 2px 8px rgba(0,0,0,0.3)',
+        background: 'var(--node)',
+        border: selected ? '1px solid var(--node-border-selected)' : '1px solid var(--node-border)',
+        boxShadow: selected ? '0 0 12px color-mix(in srgb, var(--accent) 20%, transparent)' : '0 2px 8px color-mix(in srgb, var(--foreground) 8%, transparent)',
       }}
       onDoubleClick={() => setIsEditing(true)}
     >
@@ -89,12 +89,12 @@ function CommentNodeImpl({ id, data, selected }: NodeProps) {
             e.stopPropagation()
           }}
           placeholder="Add a comment..."
-          className="bg-transparent text-[11px] font-mono text-foreground/80 placeholder:text-muted-foreground/40 outline-none resize-none"
+          className="bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none resize-none"
           style={{ width: Math.max(120, getTextWidth()), minHeight: 24 }}
         />
       ) : (
         <span 
-          className="text-[11px] font-mono text-foreground/80 cursor-text"
+          className="text-[14px] text-foreground cursor-text"
           style={{ 
             minWidth: text ? 'auto' : 120,
             color: text ? undefined : 'rgba(255,255,255,0.3)'

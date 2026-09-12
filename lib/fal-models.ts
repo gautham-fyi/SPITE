@@ -30,6 +30,9 @@ export interface ModelConfig {
   defaultDuration?: string
   defaultResolution?: string
   description: string
+  // Hidden from node pickers. Kept in the registry so older canvases
+  // that still have this modelId can generate.
+  legacy?: boolean
 }
 
 // When the user switches model, keep whatever they had set if the new model
@@ -52,7 +55,9 @@ export function carrySetting(
 
 export const FAL_MODELS: ModelConfig[] = [
   // ===== IMAGE MODELS =====
-  
+  // Current fal lineup first. FLUX.1 Schnell/Dev stay in the registry
+  // (legacy) so old nodes still generate, but they are hidden from pickers.
+
   {
     id: 'nano-banana-2',
     name: 'Nano Banana 2',
@@ -61,14 +66,13 @@ export const FAL_MODELS: ModelConfig[] = [
     imageParam: 'image_urls',
     category: 'image',
     inputTypes: ['text', 'image'],
-    // Supports extreme aspect ratios
     aspectRatios: ['auto', '21:9', '16:9', '3:2', '4:3', '5:4', '1:1', '4:5', '3:4', '2:3', '9:16', '4:1', '1:4', '8:1', '1:8'],
     resolutions: ['0.5K', '1K', '2K', '4K'],
     defaultAspectRatio: 'auto',
     defaultResolution: '1K',
-    description: 'Fast multimodal with extreme aspect ratio support'
+    description: 'Google Gemini 3.1 Flash Image — fast, character-consistent, 4K'
   },
-  
+
   {
     id: 'nano-banana-pro',
     name: 'Nano Banana Pro',
@@ -83,29 +87,128 @@ export const FAL_MODELS: ModelConfig[] = [
     defaultResolution: '1K',
     description: 'Higher quality multimodal generation'
   },
-  
+
   {
-    id: 'flux-schnell',
-    name: 'FLUX Schnell',
-    falModel: 'fal-ai/flux/schnell',
+    id: 'seedream-5-pro',
+    name: 'Seedream 5.0 Pro',
+    falModel: 'bytedance/seedream/v5/pro/text-to-image',
+    editModel: 'bytedance/seedream/v5/pro/edit',
+    imageParam: 'image_urls',
     category: 'image',
-    inputTypes: ['text'],
-    aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['auto', '21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
+    resolutions: ['1K', '2K'],
     defaultAspectRatio: '16:9',
-    description: 'Fast 12B flow transformer, 4 steps'
+    defaultResolution: '2K',
+    description: 'ByteDance flagship — deep prompt reading, 14-language text, up to 10 refs'
   },
-  
+
   {
-    id: 'flux-dev',
-    name: 'FLUX Dev',
-    falModel: 'fal-ai/flux/dev',
-    editModel: 'fal-ai/flux/dev/image-to-image',
-    imageParam: 'image_url',
+    id: 'flux-2-max',
+    name: 'FLUX.2 [max]',
+    falModel: 'fal-ai/flux-2-max',
+    editModel: 'fal-ai/flux-2-max/edit',
+    imageParam: 'image_urls',
     category: 'image',
     inputTypes: ['text', 'image'],
     aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
     defaultAspectRatio: '16:9',
-    description: 'High quality 12B model, 28 steps'
+    description: 'Black Forest Labs top FLUX.2 — photoreal, typography, multi-ref edit'
+  },
+
+  {
+    id: 'flux-2-pro',
+    name: 'FLUX.2 [pro]',
+    falModel: 'fal-ai/flux-2-pro',
+    editModel: 'fal-ai/flux-2-pro/edit',
+    imageParam: 'image_urls',
+    category: 'image',
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
+    defaultAspectRatio: '16:9',
+    description: 'FLUX.2 production default — 4MP, zero-config photorealism'
+  },
+
+  {
+    id: 'gpt-image-2.5-flare',
+    name: 'ChatGPT 2.5',
+    falModel: 'openai/gpt-image-2.5/flare/text-to-image',
+    editModel: 'openai/gpt-image-2.5/flare/edit',
+    imageParam: 'image_urls',
+    category: 'image',
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['1K', '2K', '4K'],
+    defaultAspectRatio: '4:3',
+    defaultResolution: '2K',
+    description: 'OpenAI ChatGPT Images 2.5 Flare — faster and sharper than GPT Image 2. Up to 4K.'
+  },
+
+  {
+    id: 'gpt-image-2.5-sunburst',
+    name: 'ChatGPT 2.5 Sunburst',
+    falModel: 'openai/gpt-image-2.5/sunburst/text-to-image',
+    editModel: 'openai/gpt-image-2.5/sunburst/edit',
+    imageParam: 'image_urls',
+    category: 'image',
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['1K', '2K', '4K'],
+    defaultAspectRatio: '4:3',
+    defaultResolution: '2K',
+    description: 'OpenAI ChatGPT Images 2.5 Sunburst — extra fidelity, longer generate. Up to 4K.'
+  },
+
+  {
+    id: 'gpt-image-2',
+    name: 'GPT Image 2',
+    falModel: 'openai/gpt-image-2',
+    editModel: 'openai/gpt-image-2/edit',
+    imageParam: 'image_urls',
+    category: 'image',
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['1K', '2K', '4K'],
+    defaultAspectRatio: '4:3',
+    defaultResolution: '2K',
+    description: 'OpenAI GPT Image 2 — extreme detail, fine typography. Up to 4K.'
+  },
+
+  {
+    id: 'qwen-image-2-pro',
+    name: 'Qwen Image 2 Pro',
+    falModel: 'fal-ai/qwen-image-2/pro/text-to-image',
+    editModel: 'fal-ai/qwen-image-2/pro/edit',
+    imageParam: 'image_urls',
+    category: 'image',
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
+    defaultAspectRatio: '16:9',
+    description: 'Alibaba Qwen 2.0 Pro — infographics, multilingual text, native 2K'
+  },
+
+  {
+    id: 'recraft-v4-pro',
+    name: 'Recraft V4 Pro',
+    falModel: 'fal-ai/recraft/v4/pro/text-to-image',
+    category: 'image',
+    inputTypes: ['text'],
+    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
+    defaultAspectRatio: '16:9',
+    description: 'Designer-grade composition, lighting, and brand-ready stills'
+  },
+
+  {
+    id: 'ideogram-v4',
+    name: 'Ideogram v4',
+    falModel: 'ideogram/v4',
+    category: 'image',
+    inputTypes: ['text'],
+    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['TURBO', 'BALANCED', 'QUALITY'],
+    defaultAspectRatio: '1:1',
+    defaultResolution: 'BALANCED',
+    description: 'Best-in-class for text-heavy images — logos, posters, signage'
   },
 
   {
@@ -123,50 +226,30 @@ export const FAL_MODELS: ModelConfig[] = [
     description: 'Precise image edits with multi-image reference'
   },
 
-  // ===== 2026 IMAGE MODELS =====
-  // Added based on the fal.ai 2026 directory + best-of-2026 articles.
-  // GPT Image 2 / FLUX.2 Pro / Ideogram v4 are the three image models
-  // that consistently rank above everything else in current benchmarks.
-
   {
-    id: 'gpt-image-2',
-    name: 'GPT Image 2',
-    falModel: 'openai/gpt-image-2',
-    editModel: 'openai/gpt-image-2/edit',
-    imageParam: 'image_urls',
-    category: 'image',
-    inputTypes: ['text', 'image'],
-    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
-    // Real output resolution tiers (mapped to image_size {w,h} in buildModelInput,
-    // up to fal's 3840px / ~8.3MP ceiling). Quality is sent separately as 'high'.
-    resolutions: ['1K', '2K', '4K'],
-    defaultAspectRatio: '4:3',
-    defaultResolution: '2K',
-    description: 'OpenAI\'s top image model — extreme detail, fine typography. Up to 4K.'
-  },
-
-  {
-    id: 'flux-2-pro',
-    name: 'FLUX.2 [pro]',
-    falModel: 'fal-ai/flux-2-pro',
+    id: 'flux-schnell',
+    name: 'FLUX Schnell',
+    falModel: 'fal-ai/flux/schnell',
     category: 'image',
     inputTypes: ['text'],
     aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
     defaultAspectRatio: '16:9',
-    description: 'Black Forest Labs FLUX.2 — 4MP output, character consistency'
+    description: 'FLUX.1 fast 4-step (legacy)',
+    legacy: true,
   },
 
   {
-    id: 'ideogram-v4',
-    name: 'Ideogram v4',
-    falModel: 'ideogram/v4',
+    id: 'flux-dev',
+    name: 'FLUX Dev',
+    falModel: 'fal-ai/flux/dev',
+    editModel: 'fal-ai/flux/dev/image-to-image',
+    imageParam: 'image_url',
     category: 'image',
-    inputTypes: ['text'],
-    aspectRatios: ['16:9', '4:3', '1:1', '3:4', '9:16'],
-    resolutions: ['TURBO', 'BALANCED', 'QUALITY'],
-    defaultAspectRatio: '1:1',
-    defaultResolution: 'BALANCED',
-    description: 'Best-in-class for text-heavy images — logos, posters, signage'
+    inputTypes: ['text', 'image'],
+    aspectRatios: ['21:9', '16:9', '4:3', '3:2', '1:1', '2:3', '3:4', '9:16'],
+    defaultAspectRatio: '16:9',
+    description: 'FLUX.1 28-step (legacy)',
+    legacy: true,
   },
 
   // ===== VIDEO MODELS =====
@@ -734,12 +817,37 @@ export function getModelById(id: string): ModelConfig | undefined {
   return FAL_MODELS.find(m => m.id === id)
 }
 
+export function resolveModelId(raw?: string): string | undefined {
+  if (!raw?.trim()) return undefined
+  const exact = getModelById(raw.trim())
+  if (exact) return exact.id
+  const name = raw.trim().toLowerCase().replace(/[_]+/g, ' ')
+  const slug = name.replace(/\s+/g, '-')
+  if (
+    slug === 'chatgpt-2.5'
+    || slug === 'gpt-image-2.5'
+    || slug === 'gpt-image-2.5-flare'
+    || name === 'chatgpt 2.5'
+    || name === 'chatgpt images 2.5'
+  ) {
+    return 'gpt-image-2.5-flare'
+  }
+  if (slug === 'chatgpt-2.5-sunburst' || name === 'chatgpt 2.5 sunburst') {
+    return 'gpt-image-2.5-sunburst'
+  }
+  return FAL_MODELS.find((m) => (
+    m.id === slug
+    || m.name.toLowerCase() === name
+    || m.name.toLowerCase().replace(/\s+/g, '-') === slug
+  ))?.id || raw.trim()
+}
+
 export function getModelsByCategory(category: ModelCategory): ModelConfig[] {
   return FAL_MODELS.filter(m => m.category === category)
 }
 
 export function getImageModels(): ModelConfig[] {
-  return getModelsByCategory('image')
+  return getModelsByCategory('image').filter(m => !m.legacy)
 }
 
 export function getVideoModels(): ModelConfig[] {
@@ -887,7 +995,7 @@ export function buildModelInput(
 
   // FLUX models - image_size must be a {width,height} object (NOT a "WxH"
   // string, which fal rejects with a 422 validation error).
-  if (model.id.includes('flux')) {
+  if (model.id === 'flux-schnell' || model.id === 'flux-dev') {
     input.prompt = prompt
     // image_size only applies to text-to-image; for image-to-image the output
     // follows the input image, and fal ignores image_size anyway.
@@ -1129,7 +1237,11 @@ export function buildModelInput(
   // per aspect ratio. `quality` is a SEPARATE fidelity param (sent 'high').
   // Every size below is a multiple of 16, ≤3840px edge, and within fal's
   // 0.66–8.29 MP pixel window.
-  if (model.id === 'gpt-image-2') {
+  if (
+    model.id === 'gpt-image-2'
+    || model.id === 'gpt-image-2.5-flare'
+    || model.id === 'gpt-image-2.5-sunburst'
+  ) {
     input.prompt = prompt
     const ratio = options.aspectRatio || model.defaultAspectRatio
     const tier = options.resolution || model.defaultResolution || '2K'
@@ -1146,10 +1258,12 @@ export function buildModelInput(
     return input
   }
 
-  // FLUX.2 [pro] / IDEOGRAM v4 — share an `image_size` field that accepts
-  // {width, height}. Aspect-ratio dropdown values map to fixed pixel sizes.
+  // FLUX.2 / Qwen 2 / Recraft V4 / Ideogram — `image_size` as {width,height}.
   if (
     model.id === 'flux-2-pro' ||
+    model.id === 'flux-2-max' ||
+    model.id === 'qwen-image-2-pro' ||
+    model.id === 'recraft-v4-pro' ||
     model.id === 'ideogram-v4'
   ) {
     input.prompt = prompt
@@ -1166,14 +1280,39 @@ export function buildModelInput(
     }
     input.image_size = sizeMap[ratio] || { width: 1024, height: 1024 }
 
-    // Per-model extras:
     if (model.id === 'ideogram-v4') {
-      // resolution selector doubles as the rendering_speed picker.
       input.rendering_speed = options.resolution || model.defaultResolution || 'BALANCED'
     }
-    if (model.id === 'flux-2-pro') {
-      if (options.seed !== undefined) input.seed = options.seed
+    if (options.seed !== undefined) input.seed = options.seed
+    return input
+  }
+
+  // SEEDREAM 5.0 PRO — image_size must land between 1MP and 4MP.
+  if (model.id === 'seedream-5-pro') {
+    input.prompt = prompt
+    const ratio = options.aspectRatio && options.aspectRatio !== 'auto'
+      ? options.aspectRatio
+      : '16:9'
+    const tier = options.resolution || model.defaultResolution || '2K'
+    const seedreamSizes: Record<string, { width: number; height: number }> = {
+      '21:9-1K': { width: 1600, height: 688 },
+      '16:9-1K': { width: 1408, height: 792 },
+      '4:3-1K':  { width: 1184, height: 888 },
+      '3:2-1K':  { width: 1280, height: 856 },
+      '1:1-1K':  { width: 1024, height: 1024 },
+      '2:3-1K':  { width: 856,  height: 1280 },
+      '3:4-1K':  { width: 888,  height: 1184 },
+      '9:16-1K': { width: 792,  height: 1408 },
+      '21:9-2K': { width: 2048, height: 880 },
+      '16:9-2K': { width: 1920, height: 1080 },
+      '4:3-2K':  { width: 1920, height: 1440 },
+      '3:2-2K':  { width: 1920, height: 1280 },
+      '1:1-2K':  { width: 2048, height: 2048 },
+      '2:3-2K':  { width: 1280, height: 1920 },
+      '3:4-2K':  { width: 1440, height: 1920 },
+      '9:16-2K': { width: 1080, height: 1920 },
     }
+    input.image_size = seedreamSizes[`${ratio}-${tier}`] || seedreamSizes['16:9-2K']
     return input
   }
 

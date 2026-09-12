@@ -76,9 +76,9 @@ function StickerNodeImpl({ id, data, selected }: NodeProps) {
         <div
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-1.5 rounded-xl z-50 nodrag nopan"
           style={{
-            background: 'rgba(20,22,28,0.98)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            background: 'var(--popover)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 24px color-mix(in srgb, var(--foreground) 12%, transparent)',
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >

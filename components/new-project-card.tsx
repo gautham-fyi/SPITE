@@ -47,10 +47,10 @@ export function NewProjectCard({ onCreated, origin = 'canvas', label, sublabel }
     <button
       onClick={handleCreate}
       disabled={creating}
-      className="group block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-xl text-left disabled:opacity-50"
+      className="group block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-2xl text-left disabled:opacity-50"
       aria-label="Create new project"
     >
-      <div className="glass glass-hover rounded-xl overflow-hidden aspect-[4/3] flex flex-col items-center justify-center gap-3 border border-dashed border-white/10 group-hover:border-accent/40 transition-colors duration-300 cursor-pointer">
+      <div className="glass glass-hover rounded-2xl overflow-hidden aspect-[4/3] flex flex-col items-center justify-center gap-3 border border-dashed border-white/10 group-hover:border-accent/40 transition-colors duration-300 cursor-pointer">
         <div className="w-10 h-10 rounded-full flex items-center justify-center glass accent-glow group-hover:scale-110 transition-transform duration-300 border border-accent/30">
           {creating ? (
             <CircleNotch size={20} weight="thin" className="text-accent animate-spin" />
@@ -60,12 +60,12 @@ export function NewProjectCard({ onCreated, origin = 'canvas', label, sublabel }
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <span
-            className="text-sm text-foreground/80 group-hover:text-accent transition-colors duration-200"
+            className="text-base text-foreground/80 group-hover:text-accent transition-colors duration-200"
             style={{ fontFamily: 'var(--font-montserrat)' }}
           >
             {creating ? 'Creating...' : title}
           </span>
-          <span className="text-[10px] font-mono text-muted-foreground tracking-wide">
+          <span className="text-[13px] text-muted-foreground tracking-wide">
             {subtitle}
           </span>
         </div>

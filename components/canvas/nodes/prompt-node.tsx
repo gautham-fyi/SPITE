@@ -16,7 +16,7 @@ function HandleIcon({ icon: Icon, color, style }: { icon: React.ElementType; col
         width: 22,
         height: 22,
         borderRadius: '50%',
-        background: '#111316',
+        background: 'var(--node-handle)',
         border: `1.5px solid ${color}`,
         transform: 'translate(-50%, -50%)',
         zIndex: 10,
@@ -83,7 +83,7 @@ function PromptNodeImpl({ id, data, selected }: NodeProps) {
       <NodeActionToolbar nodeId={id} selected={selected} />
 
       {/* Node label */}
-      <div className="absolute -top-6 left-0 text-[10px] font-mono text-muted-foreground/60 whitespace-nowrap pointer-events-none">
+      <div className="absolute -top-7 left-0 text-[13px] text-muted-foreground whitespace-nowrap pointer-events-none">
         {(data.label as string) || 'Prompt #1'}
       </div>
 
@@ -96,12 +96,7 @@ function PromptNodeImpl({ id, data, selected }: NodeProps) {
       {/* Card content */}
       <div
         ref={cardRef}
-        className="relative flex flex-col rounded-xl overflow-hidden transition-all duration-200"
-        style={{
-          background: '#0D0F12',
-          border: selected ? '1.5px solid rgba(107,143,168,0.85)' : '1.5px solid rgba(107,143,168,0.25)',
-          boxShadow: selected ? '0 0 0 1px rgba(107,143,168,0.2), 0 0 24px rgba(107,143,168,0.15)' : 'none',
-        }}
+        className={`canvas-node relative flex flex-col rounded-xl overflow-hidden transition-all duration-200${selected ? ' is-selected' : ''}`}
       >
         <MentionTextarea
           ref={editorRef}
@@ -110,7 +105,7 @@ function PromptNodeImpl({ id, data, selected }: NodeProps) {
           onChange={(t, ms) => { setText(t); setMentions(ms) }}
           folders={folders}
           placeholder="Enter your prompt — type @ to reference a folder…"
-          className="nodrag w-full bg-transparent resize-none outline-none text-[13px] text-foreground placeholder:text-muted-foreground/40 leading-relaxed p-4 min-h-[160px] cursor-text"
+          className="nodrag w-full bg-transparent resize-none outline-none text-[15px] text-foreground placeholder:text-muted-foreground/50 leading-relaxed p-4 min-h-[160px] cursor-text"
           rows={6}
         />
 

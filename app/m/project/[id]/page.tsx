@@ -40,7 +40,7 @@ function refsFromUrls(urls?: string[]): Ref[] {
   return (urls || []).map((url, i) => ({ id: `ref-restore-${Date.now()}-${i}`, previewUrl: url, proxyUrl: url, uploading: false }))
 }
 
-const CREATE_MODELS = FAL_MODELS.filter((m) => m.category === 'image' && !m.optionalPrompt)
+const CREATE_MODELS = FAL_MODELS.filter((m) => m.category === 'image' && !m.optionalPrompt && !m.legacy)
 const MAX_COUNT = 6
 
 function findModelId(m: string | null): string | null {

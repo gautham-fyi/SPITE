@@ -44,10 +44,10 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
     <div ref={ref} className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open) }}
-        className="flex items-center gap-1.5 h-6 px-2 rounded-md bg-[#1a1d21]/90 border border-white/10 hover:border-white/20 transition-colors"
+        className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-[var(--node-menu)] border border-border hover:border-[var(--border-bright)] transition-colors"
       >
-        <Check size={10} className="text-accent" />
-        <span className="text-[10px] font-mono text-foreground/80">
+        <Check size={12} className="text-accent" />
+        <span className="text-[13px] text-foreground">
           {selectedShot?.label || 'Select shot'}
         </span>
         <CaretDown size={8} className="text-muted-foreground" />
@@ -55,11 +55,11 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
 
       {open && (
         <div 
-          className="absolute top-full left-0 mt-1 w-48 py-1.5 rounded-lg bg-[#1a1d21] border border-white/10 shadow-xl z-50"
+          className="absolute top-full left-0 mt-1 w-48 py-1.5 rounded-lg bg-[var(--node-menu)] border border-border shadow-xl z-50"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-2 py-1 mb-1">
-            <span className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-wider">
+            <span className="text-[12px] text-muted-foreground uppercase tracking-wider">
               Select as a take for
             </span>
           </div>
@@ -87,7 +87,7 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
                       )}
                     </div>
                     {/* Label */}
-                    <span className="text-[11px] font-mono text-foreground/80 flex-1 text-left truncate">
+                    <span className="text-[13px] text-foreground flex-1 text-left truncate">
                       {shot.label}
                     </span>
                     {/* Check if selected */}
@@ -101,7 +101,7 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
                     <button
                       onClick={(e) => { e.stopPropagation(); onReplace(shot.id); setOpen(false) }}
                       title="Reassign this shot to this node, unassigning the current one"
-                      className="opacity-0 group-hover/shot:opacity-100 shrink-0 flex items-center gap-1 mr-1.5 px-1.5 py-1 rounded text-[9px] font-mono text-accent hover:bg-accent/15 transition-all"
+                      className="opacity-0 group-hover/shot:opacity-100 shrink-0 flex items-center gap-1 mr-1.5 px-1.5 py-1 rounded text-[12px] text-accent hover:bg-accent/15 transition-all"
                     >
                       <ArrowsClockwise size={10} weight="bold" />
                       Replace
@@ -118,7 +118,7 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
               className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 transition-colors text-accent"
             >
               <Plus size={12} weight="bold" />
-              <span className="text-[11px] font-mono">New Shot</span>
+              <span className="text-[13px]">New Shot</span>
             </button>
             {selectedShotId && (
               <button
@@ -126,7 +126,7 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
                 className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
               >
                 <X size={12} weight="bold" />
-                <span className="text-[11px] font-mono">Remove from shot</span>
+                <span className="text-[13px]">Remove from shot</span>
               </button>
             )}
           </div>

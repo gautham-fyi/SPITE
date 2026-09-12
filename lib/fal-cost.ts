@@ -49,7 +49,20 @@ const COST_TABLE: Record<string, CostEntry> = {
   // interpolation. 4K is exact: 3840x2160 high = $0.401.
   'gpt-image-2':         { unit: 'image', price: 0.41,
                            byTier: { '1K': 0.21, '2K': 0.25, '4K': 0.41 } },
+  // ChatGPT Images 2.5 (Flare + Sunburst, same price). High quality on fal:
+  // 1024x768 $0.036, QHD $0.055, 4K $0.100. Ceiling per tier.
+  'gpt-image-2.5-flare': { unit: 'image', price: 0.11,
+                           byTier: { '1K': 0.06, '2K': 0.07, '4K': 0.11 } },
+  'gpt-image-2.5-sunburst': { unit: 'image', price: 0.11,
+                           byTier: { '1K': 0.06, '2K': 0.07, '4K': 0.11 } },
   'flux-2-pro':          { unit: 'image', price: 0.05 },
+  // FLUX.2 [max]: $0.07 first MP + $0.03 each extra. ~2MP still is ~$0.10.
+  'flux-2-max':          { unit: 'image', price: 0.14 },
+  // Seedream 5.0 Pro: $0.0675 ≤1536², $0.135 up to 2048².
+  'seedream-5-pro':      { unit: 'image', price: 0.135,
+                           byTier: { '1K': 0.0675, '2K': 0.135 } },
+  'qwen-image-2-pro':    { unit: 'image', price: 0.075 },
+  'recraft-v4-pro':      { unit: 'image', price: 0.25 },
   // Ideogram v4 bills per megapixel by rendering speed: TURBO $0.0075,
   // BALANCED $0.015, QUALITY $0.025. The largest frame this app can request
   // is 4:3 at 1408x1056 = 1.487 MP, so each tier is that ceiling.

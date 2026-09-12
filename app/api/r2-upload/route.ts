@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
     const file = formData.get('file') as File
     const rawFilename = formData.get('filename') as string || file?.name || 'upload'
+    const rawContentType = formData.get('contentType')
 
     console.log('[R2 Upload] File:', { name: rawFilename, size: file?.size, type: file?.type })
 
@@ -45,7 +46,9 @@ export async function POST(req: NextRequest) {
         Bucket: process.env.R2_BUCKET_NAME!,
         Key: key,
         Body: new Uint8Array(buffer),
-        ContentType: file.type,
+        ContentType: (typeof rawContentType === 'string' && rawContentType)
+          || file.type
+          || 'application/octet-stream',
       })
     )
 

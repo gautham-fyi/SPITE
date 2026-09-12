@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { Montserrat, Inter, Geist_Mono } from 'next/font/google'
+import { Montserrat, Inter, Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/components/auth-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -15,14 +16,19 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+})
+
 const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-geist-mono',
 })
 
 export const metadata: Metadata = {
-  title: 'SPITE — AI filmmaking workflows',
-  description: 'Open-source node-based canvas for AI filmmaking workflows. Your keys. Your models. Your workflow.',
+  title: 'ZtoryMade — stories, stills, and motion',
+  description: 'A canvas for AI filmmaking. Your keys. Your models. Your cut.',
 }
 
 // Lock zoom so the canvas (and the mobile app) don't pinch/double-tap zoom the
@@ -50,12 +56,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${inter.variable} ${geistMono.variable} bg-background`} suppressHydrationWarning>
-      <body className="font-sans antialiased bg-background text-foreground min-h-screen" suppressHydrationWarning>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-        <Toaster theme="dark" position="bottom-right" />
+    <html lang="en" className="dark bg-background" suppressHydrationWarning>
+      <body className={`${montserrat.variable} ${inter.variable} ${geist.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground min-h-screen`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false} disableTransitionOnChange>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <Toaster position="bottom-right" />
+        </ThemeProvider>
       </body>
     </html>
   )

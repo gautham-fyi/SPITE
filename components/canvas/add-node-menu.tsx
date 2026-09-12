@@ -140,7 +140,7 @@ export function AddNodeMenu({ x, y, onSelect, onClose }: AddNodeMenuProps) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search"
-          className="flex-1 bg-transparent outline-none text-[12px] font-mono text-foreground placeholder:text-muted-foreground/50"
+          className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted-foreground/60"
         />
       </div>
 
@@ -171,7 +171,7 @@ export function AddNodeMenu({ x, y, onSelect, onClose }: AddNodeMenuProps) {
         {Object.entries(grouped).map(([cat, items]) => (
           <div key={cat}>
             <div className="px-3 pt-3 pb-1">
-              <span className="text-[9px] font-mono text-muted-foreground/50 tracking-widest uppercase">{cat}</span>
+              <span className="text-[12px] text-muted-foreground tracking-widest uppercase">{cat}</span>
             </div>
             {items.map(item => (
               <button
@@ -186,9 +186,9 @@ export function AddNodeMenu({ x, y, onSelect, onClose }: AddNodeMenuProps) {
                 <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 group-hover:bg-accent/20 group-hover:text-accent text-muted-foreground transition-colors shrink-0">
                   <item.icon size={13} weight="regular" />
                 </div>
-                <span className="flex-1 text-left text-[12px] font-mono text-foreground/80">{item.label}</span>
+                <span className="flex-1 text-left text-[14px] text-foreground">{item.label}</span>
                 {item.shortcut && (
-                  <kbd className="text-[9px] font-mono text-muted-foreground/40 bg-white/5 px-1.5 py-0.5 rounded">
+                  <kbd className="text-[12px] text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded">
                     {item.shortcut}
                   </kbd>
                 )}
@@ -197,21 +197,21 @@ export function AddNodeMenu({ x, y, onSelect, onClose }: AddNodeMenuProps) {
           </div>
         ))}
         {Object.keys(grouped).length === 0 && (
-          <div className="px-3 py-6 text-center text-[11px] font-mono text-muted-foreground/40">No results</div>
+          <div className="px-3 py-6 text-center text-[14px] text-muted-foreground">No results</div>
         )}
       </div>
 
       {/* Footer shortcuts */}
       <div className="flex items-center justify-between px-3 py-2 border-t border-white/[0.06]">
-        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/40">
+        <div className="flex items-center gap-1 text-[12px] text-muted-foreground">
           <kbd className="bg-white/5 px-1.5 py-0.5 rounded">N</kbd>
           <span>Open</span>
         </div>
-        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/40">
+        <div className="flex items-center gap-1 text-[12px] text-muted-foreground">
           <kbd className="bg-white/5 px-1.5 py-0.5 rounded">↑↓</kbd>
           <span>Navigate</span>
         </div>
-        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground/40">
+        <div className="flex items-center gap-1 text-[12px] text-muted-foreground">
           <kbd className="bg-white/5 px-1.5 py-0.5 rounded">↵</kbd>
           <span>Insert</span>
         </div>

@@ -248,10 +248,10 @@ export function NodeActionToolbar({
       <div
         className="flex items-center gap-0.5 px-1.5 py-1 rounded-full"
         style={{
-          background: 'rgba(18,20,24,0.95)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--glass-border)',
           backdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          boxShadow: '0 4px 16px color-mix(in srgb, var(--foreground) 12%, transparent)',
         }}
       >
         {/* Run button with dropdown */}
@@ -406,10 +406,10 @@ export function NodeActionToolbar({
                     <div
                       className="absolute left-full top-0 ml-1 min-w-[140px] py-1 rounded-lg z-50"
                       style={{
-                        background: 'rgba(18,20,24,0.98)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--popover)',
+                        border: '1px solid var(--border)',
                         backdropFilter: 'blur(12px)',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                        boxShadow: '0 8px 24px color-mix(in srgb, var(--foreground) 12%, transparent)',
                       }}
                       onMouseLeave={() => setAddToMenuOpen(false)}
                     >
@@ -514,10 +514,10 @@ function DropdownMenu({ children, onClose }: { children: React.ReactNode; onClos
       ref={ref}
       className="absolute top-full left-0 mt-1 min-w-[160px] py-1 rounded-lg z-50"
       style={{
-        background: 'rgba(18,20,24,0.98)',
-        border: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--popover)',
+        border: '1px solid var(--border)',
         backdropFilter: 'blur(12px)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        boxShadow: '0 8px 24px color-mix(in srgb, var(--foreground) 12%, transparent)',
       }}
     >
       {children}

@@ -97,8 +97,8 @@ export function ConnectedInputs({ nodeId, handleId, side, top, label = 'Connecte
         onClick={() => setOpen((v) => !v)}
         title={`${count} connected — click to inspect`}
         aria-label={`${count} connected input${count === 1 ? '' : 's'}`}
-        className={`flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-mono leading-none transition-colors ${
-          open ? 'bg-accent text-[#0D0F12]' : 'bg-[#1a1d21] text-foreground/70 border border-white/20 hover:border-accent/60 hover:text-foreground'
+        className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] leading-none transition-colors ${
+          open ? 'bg-accent text-accent-foreground' : 'bg-[var(--node-menu)] text-foreground/70 border border-border hover:border-accent/60 hover:text-foreground'
         }`}
       >
         {count}
@@ -106,11 +106,11 @@ export function ConnectedInputs({ nodeId, handleId, side, top, label = 'Connecte
 
       {open && (
         <div
-          className="absolute top-1/2 -translate-y-1/2 rounded-xl border border-white/10 bg-[#141719] shadow-[0_10px_40px_rgba(0,0,0,0.6)] p-2 w-[188px]"
+          className="absolute top-1/2 -translate-y-1/2 rounded-xl border border-border bg-[var(--node-menu)] shadow-xl p-2 w-[188px]"
           style={{ [side === 'left' ? 'right' : 'left']: 24 }}
         >
           <div className="flex items-center justify-between px-1 pb-1.5">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground/70">{label} · {count}</span>
+            <span className="text-[12px] uppercase tracking-wider text-muted-foreground">{label} · {count}</span>
             <button onClick={() => setOpen(false)} aria-label="Close" className="text-muted-foreground hover:text-foreground"><X size={9} weight="bold" /></button>
           </div>
 
@@ -145,7 +145,7 @@ export function ConnectedInputs({ nodeId, handleId, side, top, label = 'Connecte
           </div>
 
           {anyDead && (
-            <p className="text-[9px] font-mono text-amber-400/80 leading-snug px-1 pt-1.5">
+            <p className="text-[12px] text-amber-300 leading-snug px-1 pt-1.5">
               Amber = source has no image yet; it would be ignored.
             </p>
           )}
@@ -153,7 +153,7 @@ export function ConnectedInputs({ nodeId, handleId, side, top, label = 'Connecte
           {count > 1 && (
             <button
               onClick={() => { setEdges((es) => es.filter((e) => !(e.target === nodeId && e.targetHandle === handleId))); setOpen(false) }}
-              className="mt-1.5 w-full flex items-center justify-center gap-1 h-6 rounded-md bg-white/5 hover:bg-red-500/15 hover:text-red-300 text-[9px] font-mono text-muted-foreground transition-colors"
+              className="mt-1.5 w-full flex items-center justify-center gap-1 h-7 rounded-md bg-white/5 hover:bg-red-500/15 hover:text-red-300 text-[12px] text-muted-foreground transition-colors"
             >
               <LinkBreak size={9} /> Disconnect all
             </button>

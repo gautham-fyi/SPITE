@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Plus, CaretDown, Play, CaretLeft, CaretRight, Image as ImageIcon, DownloadSimple, CircleNotch, Trash } from '@phosphor-icons/react'
+import { useState, useRef, useEffect } from 'react'
+import { Plus, CaretDown, CaretUp, Play, CaretLeft, CaretRight, Image as ImageIcon, DownloadSimple, CircleNotch, Trash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { exportScenesAsZip } from '@/lib/export-scenes'
 
@@ -36,6 +36,8 @@ interface SceneTimelineProps {
   projectName?: string
 }
 
+const TIMELINE_HIDDEN_KEY = 'spite:scene-timeline-hidden'
+
 export function SceneTimeline({
   scenes,
   activeSceneId,
@@ -46,6 +48,26 @@ export function SceneTimeline({
   onReorderShot,
   projectName,
 }: SceneTimelineProps) {
+  const [hidden, setHidden] = useState(true)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(TIMELINE_HIDDEN_KEY)
+      if (stored === '0' || stored === 'false') setHidden(false)
+      else if (stored === '1' || stored === 'true') setHidden(true)
+    } catch {
+      // Ignore quota / private-mode failures — default stays hidden.
+    }
+  }, [])
+
+  const persistHidden = (next: boolean) => {
+    setHidden(next)
+    try {
+      localStorage.setItem(TIMELINE_HIDDEN_KEY, next ? '1' : '0')
+    } catch {
+      // Ignore write failures.
+    }
+  }
   const [exporting, setExporting] = useState(false)
   // Confirmation modal for scene deletion. Null = no modal. Stores
   // the scene id + name so the message can name the scene the user
@@ -128,8 +150,45 @@ export function SceneTimeline({
     setDropTarget(null)
   }
 
+  const activeScene = scenes.find(s => s.id === activeSceneId)
+  const activeShotCount = activeScene?.shots.filter(s => s.nodeId).length ?? 0
+
+  if (hidden) {
+    return (
+      <div data-tour="scene-timeline" className="flex items-center shrink-0 h-10 border-b border-border bg-background px-3 gap-2">
+        <button
+          onClick={() => persistHidden(false)}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          title="Show scene strip"
+        >
+          <CaretDown size={14} weight="bold" />
+          <span className="text-[14px]">
+            {activeScene?.name || 'Scene 1'}
+          </span>
+          <span className="text-[13px] text-muted-foreground">
+            {activeShotCount} {activeShotCount === 1 ? 'shot' : 'shots'}
+          </span>
+        </button>
+        <button
+          data-tour="export"
+          onClick={handleExport}
+          disabled={exporting}
+          className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
+          title="Download every tagged shot across all scenes as a zip"
+        >
+          {exporting ? (
+            <CircleNotch size={12} weight="bold" className="animate-spin" />
+          ) : (
+            <DownloadSimple size={12} weight="bold" />
+          )}
+          <span>{exporting ? 'Exporting...' : 'Export'}</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div data-tour="scene-timeline" className="flex flex-col shrink-0 border-b border-border/50 bg-[#0a0c0e]">
+    <div data-tour="scene-timeline" className="flex flex-col shrink-0 border-b border-border bg-background">
       {/* Scene tabs row with scroll controls */}
       <div className="relative flex items-center">
         {/* Scroll left button */}
@@ -182,12 +241,12 @@ export function SceneTimeline({
                 <div className="flex flex-col gap-0.5 shrink-0 min-w-[68px]">
                   <div className="flex items-center gap-1">
                     {isActive && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
-                    <span className={`text-[13px] font-mono ${isActive ? 'text-foreground' : 'text-muted-foreground/80'}`}>
+                    <span className={`text-[15px] ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {scene.name}
                     </span>
-                    <CaretDown size={10} className="text-muted-foreground/40" />
+                    <CaretDown size={12} className="text-muted-foreground/60" />
                   </div>
-                  <span className="text-[11px] font-mono text-muted-foreground/40 pl-2.5">
+                  <span className="text-[13px] text-muted-foreground pl-2.5">
                     {realShots.length} {realShots.length === 1 ? 'shot' : 'shots'}
                   </span>
                 </div>
@@ -224,16 +283,16 @@ export function SceneTimeline({
                       ) : !shot.nodeId ? (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 text-muted-foreground/40">
                           <ImageIcon size={14} />
-                          <span className="text-[9px] font-mono leading-none">{shot.order}</span>
+                          <span className="text-[11px] leading-none">{shot.order}</span>
                         </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] font-mono text-muted-foreground/40">
+                        <div className="w-full h-full flex items-center justify-center text-[12px] text-muted-foreground">
                           {shot.order}
                         </div>
                       )}
                       {/* Shot number badge for real shots with thumbnails */}
                       {shot.thumbnail && shot.nodeId && (
-                        <div className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded bg-black/60 text-[9px] font-mono text-white/80">
+                        <div className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded bg-black/60 text-[11px] text-white">
                           {shot.order}
                         </div>
                       )}
@@ -250,7 +309,7 @@ export function SceneTimeline({
                       a small "+N" pill so the user knows there's more
                       hidden in this scene. */}
                   {isCollapsed && sortedShots.length > 1 && (
-                    <div className="shrink-0 px-1.5 h-[44px] flex items-center text-[10px] font-mono text-muted-foreground/60">
+                    <div className="shrink-0 px-1.5 h-[44px] flex items-center text-[13px] text-muted-foreground">
                       +{sortedShots.length - 1}
                     </div>
                   )}
@@ -258,7 +317,7 @@ export function SceneTimeline({
                   {/* Empty state when no shots tagged at all */}
                   {realShots.length === 0 && !isCollapsed && (
                     <div className="w-[58px] h-[44px] rounded border border-dashed border-border/40 flex items-center justify-center">
-                      <span className="text-[10px] font-mono text-muted-foreground/30">Empty</span>
+                      <span className="text-[12px] text-muted-foreground">Empty</span>
                     </div>
                   )}
                 </div>
@@ -353,18 +412,26 @@ export function SceneTimeline({
       <div className="flex items-center gap-2 px-4 py-1.5">
         <button className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-white/5 transition-colors">
           <div className="w-2 h-2 rounded-full bg-accent/60" />
-          <span className="text-[13px] font-mono text-foreground/80">
+          <span className="text-[15px] text-foreground">
             {scenes.find(s => s.id === activeSceneId)?.name || 'Scene 1'}
           </span>
           <CaretDown size={12} className="text-muted-foreground/60" />
         </button>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            onClick={() => persistHidden(true)}
+            className="flex items-center gap-1.5 px-2 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            title="Hide scene strip"
+          >
+            <CaretUp size={12} weight="bold" />
+            <span>Hide</span>
+          </button>
           <button
             data-tour="export"
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[12px] font-mono text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
             title="Download every tagged shot across all scenes as a zip"
           >
             {exporting ? (
@@ -387,7 +454,7 @@ export function SceneTimeline({
           onClick={() => setPendingDelete(null)}
         >
           <div
-            className="w-[420px] max-w-[90vw] rounded-xl border border-border/40 bg-[#0a0c0e] p-6 shadow-2xl"
+            className="w-[420px] max-w-[90vw] rounded-xl border border-border bg-popover p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-base font-medium text-foreground mb-2">

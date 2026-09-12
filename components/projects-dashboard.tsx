@@ -2,12 +2,14 @@
 
 import { useState, useMemo } from 'react'
 import useSWR from 'swr'
-import { Question } from '@phosphor-icons/react'
+import { Question, Robot } from '@phosphor-icons/react'
+import { AgentChatPanel } from '@/components/agent/agent-chat-panel'
 import { ProjectCard } from './project-card'
 import { NewProjectCard } from './new-project-card'
 import { SearchBar } from './search-bar'
 import { OnboardingTour } from './onboarding/use-onboarding-tour'
 import { VersionBadge } from './version-badge'
+import { SpiteLogo } from './spite-logo'
 import { startTour } from '@/lib/onboarding'
 
 interface Project {
@@ -29,6 +31,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json()).then(data => {
 
 export function ProjectsDashboard() {
   const [search, setSearch] = useState('')
+  const [agentOpen, setAgentOpen] = useState(true)
   const { data: projects = [], mutate } = useSWR<Project[]>('/api/projects', fetcher)
 
   const filtered = useMemo(() => {
@@ -77,18 +80,17 @@ export function ProjectsDashboard() {
       <div className="spite-ozone-bg fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
       <div className="spite-grain" aria-hidden="true" />
 
-      <div className="relative z-10 min-h-screen">
+      <div className="relative z-10 min-h-screen flex">
+      <div className="flex-1 min-w-0">
         {/* Header */}
         <header className="sticky top-0 z-50">
-          <div className="glass border-b border-white/5 px-6 md:px-10 py-4">
+          <div className="glass border-b border-border px-6 md:px-10 py-4">
             <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
-              {/* Wordmark */}
               <div className="shrink-0">
-                <img
-                  src="/brand/icon-text/SPITE_text+icon_FLAT_WHITE.svg"
-                  alt="SPITE"
-                  className="h-8 w-auto select-none"
-                  draggable={false}
+                <SpiteLogo
+                  className="h-8 w-auto"
+                  withWordmark
+                  wordmarkClassName="text-[17px] font-semibold tracking-tight text-foreground"
                 />
               </div>
 
@@ -100,6 +102,18 @@ export function ProjectsDashboard() {
               {/* Build marker + replay the tour */}
               <div className="shrink-0 flex items-center justify-end gap-2">
                 <VersionBadge />
+                <button
+                  onClick={() => setAgentOpen(v => !v)}
+                  aria-label={agentOpen ? 'Close agent' : 'Open agent'}
+                  title={agentOpen ? 'Close agent' : 'Open agent'}
+                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                    agentOpen
+                      ? 'bg-accent/20 text-accent'
+                      : 'glass-hover text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Robot size={16} weight="regular" />
+                </button>
                 <button
                   onClick={() => startTour('dashboard')}
                   aria-label="Take the tour"
@@ -119,15 +133,16 @@ export function ProjectsDashboard() {
               "Flow" section below. While searching, show the result count. */}
           <div className="flex items-baseline gap-3 mb-6">
             {search ? (
-              <p className="text-[11px] font-mono tracking-[0.18em] uppercase text-muted-foreground/70">
+              <p className="text-[13px] tracking-[0.12em] uppercase text-muted-foreground">
                 {filtered.length} result{filtered.length !== 1 ? 's' : ''} for &quot;{search}&quot;
               </p>
             ) : (
               <>
-                <p className="text-[11px] font-mono tracking-[0.18em] uppercase text-muted-foreground/70">
+                <p className="inline-flex items-center gap-2 text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                   Canvas
                 </p>
-                <span className="text-[10px] font-mono text-muted-foreground/40">
+                <span className="text-[13px] text-muted-foreground">
                   {canvasProjects.length} · node canvas{canvasProjects.length !== 1 ? 'es' : ''}
                 </span>
               </>
@@ -159,7 +174,7 @@ export function ProjectsDashboard() {
                 >
                   No projects found
                 </p>
-                <p className="text-xs font-mono text-muted-foreground/50 tracking-wide">
+                <p className="text-sm text-muted-foreground tracking-wide">
                   Try a different search term
                 </p>
               </div>
@@ -168,7 +183,7 @@ export function ProjectsDashboard() {
             {/* Empty state when no projects at all */}
             {!search && projects.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 gap-3">
-                <p className="text-sm text-muted-foreground/50 font-mono">
+                <p className="text-base text-muted-foreground">
                   No projects yet. Create your first one!
                 </p>
               </div>
@@ -181,10 +196,11 @@ export function ProjectsDashboard() {
           {(flowProjects.length > 0 || !search) && (
             <section className="mt-12">
               <div className="flex items-baseline gap-3 mb-6">
-                <p className="text-[11px] font-mono tracking-[0.18em] uppercase text-muted-foreground/70">
+                <p className="inline-flex items-center gap-2 text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                   Flow
                 </p>
-                <span className="text-[10px] font-mono text-muted-foreground/40">
+                <span className="text-[13px] text-muted-foreground">
                   {flowProjects.length} · generation thread{flowProjects.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -205,6 +221,12 @@ export function ProjectsDashboard() {
             </section>
           )}
         </main>
+      </div>
+      {agentOpen && (
+        <div className="sticky top-0 h-screen shrink-0">
+          <AgentChatPanel surface="dashboard" onClose={() => setAgentOpen(false)} />
+        </div>
+      )}
       </div>
 
       <OnboardingTour surface="dashboard" />

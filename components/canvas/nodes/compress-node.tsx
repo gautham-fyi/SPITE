@@ -202,7 +202,7 @@ function CompressNodeImpl({ id, data, selected }: NodeProps) {
       <div
         className="absolute flex items-center justify-center"
         style={{
-          width: 24, height: 24, borderRadius: '50%', background: '#111316',
+          width: 24, height: 24, borderRadius: '50%', background: 'var(--node-handle)',
           border: `1.5px solid ${connectedUrl ? 'rgba(96,165,250,0.85)' : 'rgba(107,143,168,0.55)'}`,
           top: '50%', left: -12, transform: 'translateY(-50%)', zIndex: 10, pointerEvents: 'none',
         }}
@@ -212,7 +212,7 @@ function CompressNodeImpl({ id, data, selected }: NodeProps) {
       <div
         className="absolute flex items-center justify-center"
         style={{
-          width: 24, height: 24, borderRadius: '50%', background: '#111316',
+          width: 24, height: 24, borderRadius: '50%', background: 'var(--node-handle)',
           border: `1.5px solid ${outputUrl ? 'rgba(96,165,250,0.85)' : 'rgba(96,165,250,0.3)'}`,
           top: '50%', right: -12, transform: 'translateY(-50%)', zIndex: 10, pointerEvents: 'none',
         }}
@@ -221,12 +221,8 @@ function CompressNodeImpl({ id, data, selected }: NodeProps) {
       </div>
 
       <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          width: 280,
-          background: '#0D0F12',
-          border: selected ? '1.5px solid rgba(107,143,168,0.85)' : '1.5px solid rgba(107,143,168,0.25)',
-        }}
+        className={`canvas-node rounded-xl overflow-hidden${selected ? ' is-selected' : ''}`}
+        style={{ width: 280 }}
       >
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => onPickFile(e.target.files?.[0])} />
 

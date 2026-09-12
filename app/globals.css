@@ -11,7 +11,7 @@
    pale scrollbar visible). */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(107, 143, 168, 0.35) rgba(255, 255, 255, 0.03);
+  scrollbar-color: rgba(139, 108, 245, 0.4) rgba(255, 255, 255, 0.03);
 }
 *::-webkit-scrollbar {
   width: 10px;
@@ -21,13 +21,13 @@
   background: rgba(255, 255, 255, 0.03);
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(107, 143, 168, 0.35);
+  background: rgba(139, 108, 245, 0.4);
   border-radius: 6px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 143, 168, 0.55);
+  background: rgba(139, 108, 245, 0.6);
   background-clip: padding-box;
   border: 2px solid transparent;
 }
@@ -52,25 +52,27 @@
 @keyframes spite-anticipation {
   0%, 100% {
     box-shadow:
-      0 0 18px rgba(107, 143, 168, 0.18),
-      0 0 36px rgba(107, 143, 168, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 0 18px rgba(139, 108, 245, 0.2),
+      0 0 36px rgba(139, 108, 245, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   50% {
     box-shadow:
-      0 0 32px rgba(107, 143, 168, 0.32),
-      0 0 64px rgba(107, 143, 168, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      0 0 32px rgba(139, 108, 245, 0.36),
+      0 0 64px rgba(139, 108, 245, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 }
 
-/* Ozone-layer base — deep near-black with a faint frost-blue curve
-   glowing up from below the viewport edge. Used on full-page surfaces
-   that benefit from the horizon-line atmosphere (login, dashboard). */
+/* Deep navy + faint line grid + a soft purple wash. */
 .spite-ozone-bg {
-  background:
-    radial-gradient(ellipse 80% 55% at 50% 112%, rgba(107, 143, 168, 0.22) 0%, rgba(107, 143, 168, 0.06) 35%, transparent 70%),
-    #050608;
+  background-color: #0B0A10;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 55% at 85% 10%, rgba(139, 108, 245, 0.18), transparent 50%),
+    radial-gradient(ellipse 70% 45% at 15% 90%, rgba(91, 70, 193, 0.14), transparent 55%);
+  background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%;
 }
 
 /* Film grain overlay — brand guide §18 calls for fine grain in
@@ -89,27 +91,37 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* SPITE — cold, restrained, cinematic dark theme */
-  --background: #080A0C;
-  --canvas: #0D0F12;
-  --foreground: #F0EDE6;
-  --muted-foreground: #6B7280;
-  --accent: #6B8FA8;
-  --accent-foreground: #F0EDE6;
-  --accent-hover: #A8B0B8;
+  --background: #0B0A10;
+  --canvas: #100F16;
+  --foreground: #F4F1FF;
+  --muted-foreground: #A39BB8;
+  --accent: #8B6CF5;
+  --accent-foreground: #0B0A10;
+  --accent-hover: #A78BFA;
 
   --card: rgba(255, 255, 255, 0.04);
-  --card-foreground: #F0EDE6;
+  --card-foreground: #F4F1FF;
   --border: rgba(255, 255, 255, 0.08);
-  --border-bright: rgba(255, 255, 255, 0.12);
+  --border-bright: rgba(255, 255, 255, 0.14);
   --input: rgba(255, 255, 255, 0.06);
-  --ring: #6B8FA8;
+  --ring: #8B6CF5;
 
-  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg: rgba(16, 14, 24, 0.78);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shine: rgba(255, 255, 255, 0.10);
+  --popover: #16141E;
+  --popover-foreground: #F4F1FF;
+  --surface: rgba(255, 255, 255, 0.06);
+  --canvas-dot: #2E2A3A;
+  --node: #0D0F12;
+  --node-inset: #0a0c0f;
+  --node-handle: #111316;
+  --node-menu: #1a1d21;
+  --node-chip: rgba(255, 255, 255, 0.05);
+  --node-border: rgba(107, 143, 168, 0.25);
+  --node-border-selected: rgba(107, 143, 168, 0.85);
 
-  --radius: 0.75rem;
+  --radius: 1rem;
 }
 
 @theme inline {
@@ -117,9 +129,9 @@
      and display headlines. `font-mono` is intentionally remapped to Inter
      too so the existing `font-mono` usages adopt the new look without a
      sweeping rename. */
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-inter);
-  --font-display: var(--font-montserrat);
+  --font-sans: var(--font-geist), var(--font-inter);
+  --font-mono: var(--font-geist), var(--font-inter);
+  --font-display: var(--font-geist), var(--font-montserrat);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -145,13 +157,19 @@
   }
 
   html {
-    background-color: #080A0C;
+    background-color: var(--background);
+    color-scheme: dark;
   }
 
   body {
-    background-color: #080A0C;
-    color: #F0EDE6;
-    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: 15px;
+    line-height: 1.5;
+    letter-spacing: 0;
+    word-spacing: 0;
+    font-family: var(--font-geist), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
@@ -182,9 +200,40 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
+.canvas-node {
+  background: var(--node);
+  border: 1.5px solid var(--node-border);
+}
+.canvas-node.is-selected:not(.is-tagged) {
+  border-color: var(--node-border-selected);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 24px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.canvas-node.is-tagged {
+  border-color: rgba(251, 191, 36, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(251, 191, 36, 0.2),
+    0 0 20px rgba(251, 191, 36, 0.25);
+}
+.canvas-node-inset {
+  background: var(--node-inset);
+}
+.canvas-node-handle {
+  background: var(--node-handle) !important;
+}
+
 /* Frost blue glow for accent elements */
 .accent-glow {
-  box-shadow: 0 0 20px rgba(107, 143, 168, 0.35), 0 0 40px rgba(107, 143, 168, 0.12);
+  box-shadow: 0 0 20px rgba(139, 108, 245, 0.4), 0 0 40px rgba(139, 108, 245, 0.14);
+}
+
+.brand-grid-card {
+  background-color: #1B3FA8;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 /* Shake animation for login errors */

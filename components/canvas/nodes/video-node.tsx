@@ -52,18 +52,18 @@ function ControlSelect({
       <button 
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
-        className="flex items-center gap-1 px-2 h-6 rounded-md bg-white/5 hover:bg-white/10 text-[10px] font-mono text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-1 px-2 h-7 rounded-md bg-[var(--node-chip)] hover:bg-[var(--surface)] text-[13px] text-muted-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {value}
         <CaretDown size={8} weight="bold" />
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 mb-1 bg-[#1a1d21] border border-white/10 rounded-lg py-1 z-50 min-w-[120px] shadow-xl max-h-[200px] overflow-y-auto">
+        <div className="absolute bottom-full left-0 mb-1 bg-[var(--node-menu)] border border-border rounded-lg py-1 z-50 min-w-[120px] shadow-xl max-h-[200px] overflow-y-auto">
           {options.map(opt => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`w-full text-left px-3 py-1.5 text-[10px] font-mono hover:bg-white/10 transition-colors ${opt.value === value ? 'text-accent' : 'text-muted-foreground'}`}
+              className={`w-full text-left px-3 py-2 text-[13px] hover:bg-white/10 transition-colors ${opt.value === value ? 'text-accent' : 'text-muted-foreground'}`}
             >
               {opt.label}
             </button>
@@ -90,7 +90,7 @@ function HandleIcon({ icon: Icon, color, position, top, visible = true }: {
         width: 24,
         height: 24,
         borderRadius: '50%',
-        background: '#111316',
+        background: 'var(--node-handle)',
         border: `1.5px solid ${color}`,
         top: top,
         transform: 'translateY(-50%)',
@@ -120,7 +120,7 @@ function StatusBadge({ status, progress }: { status: GenerationStatus; progress?
   const config = statusConfig[status]
 
   return (
-    <div className={`flex items-center gap-1.5 text-[9px] font-mono ${config.color}`}>
+    <div className={`flex items-center gap-1.5 text-[12px] ${config.color}`}>
       {(status === 'submitting' || status === 'in_queue' || status === 'in_progress') && (
         <CircleNotch size={10} className="animate-spin" />
       )}
@@ -266,6 +266,25 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
       prevModelIdRef.current = currentModel.id
     }
   }, [currentModel])
+
+  useEffect(() => {
+    if (typeof data.prompt === 'string' && data.prompt !== prompt) setPrompt(data.prompt)
+  }, [data.prompt])
+  useEffect(() => {
+    if (typeof data.modelId === 'string' && data.modelId !== modelId) {
+      prevModelIdRef.current = data.modelId
+      setModelId(data.modelId)
+    }
+  }, [data.modelId])
+  useEffect(() => {
+    if (typeof data.aspectRatio === 'string' && data.aspectRatio !== aspectRatio) setAspectRatio(data.aspectRatio)
+  }, [data.aspectRatio])
+  useEffect(() => {
+    if (typeof data.resolution === 'string' && data.resolution !== resolution) setResolution(data.resolution)
+  }, [data.resolution])
+  useEffect(() => {
+    if (typeof data.duration === 'string' && data.duration !== duration) setDuration(data.duration)
+  }, [data.duration])
 
   const selectedShotId = data.shotId as string | undefined
   // useNodes() would re-render this component on every sibling node change
@@ -923,6 +942,17 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
     }
   }
 
+  const generateRef = useRef(handleGenerate)
+  generateRef.current = handleGenerate
+  useEffect(() => {
+    const onAgent = (e: Event) => {
+      const nodeId = (e as CustomEvent<{ nodeId?: string }>).detail?.nodeId
+      if (nodeId === id) void generateRef.current()
+    }
+    window.addEventListener('spite:agent-generate', onAgent)
+    return () => window.removeEventListener('spite:agent-generate', onAgent)
+  }, [id])
+
   // Cost-aware generate wrapper. Estimates the fal charge for the
   // current model × batch count × duration, surfaces it in the
   // button tooltip, and gates handleGenerate behind a blocking
@@ -1031,12 +1061,12 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
               if (e.key === 'Enter') commitRename()
               else if (e.key === 'Escape') setIsRenaming(false)
             }}
-            className="text-[10px] font-mono text-foreground bg-transparent border-b border-accent/60 outline-none min-w-[140px]"
+            className="text-[13px] text-foreground bg-transparent border-b border-accent/60 outline-none min-w-[140px]"
           />
         ) : (
           <span
             onDoubleClick={handleRename}
-            className="text-[10px] font-mono text-muted-foreground/60 whitespace-nowrap cursor-text hover:text-foreground transition-colors"
+            className="text-[13px] text-muted-foreground whitespace-nowrap cursor-text hover:text-foreground transition-colors"
             title="Double-click to rename"
           >
             {(data.label as string) || 'Video Generator #1'}
@@ -1099,24 +1129,11 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
 
       {/* Card content */}
       <div
-        className="flex flex-col rounded-xl overflow-hidden transition-all duration-200"
-        style={{
-          background: '#0D0F12',
-          border: isTaggedToShot 
-            ? '1.5px solid rgba(251,191,36,0.7)' 
-            : selected 
-              ? '1.5px solid rgba(107,143,168,0.85)' 
-              : '1.5px solid rgba(107,143,168,0.25)',
-          boxShadow: isTaggedToShot
-            ? '0 0 0 1px rgba(251,191,36,0.2), 0 0 20px rgba(251,191,36,0.25), 0 0 40px rgba(251,191,36,0.1)'
-            : selected 
-              ? '0 0 0 1px rgba(107,143,168,0.2), 0 0 24px rgba(107,143,168,0.15)' 
-              : 'none',
-        }}
+        className={`canvas-node flex flex-col rounded-xl overflow-hidden transition-all duration-200${isTaggedToShot ? ' is-tagged' : selected ? ' is-selected' : ''}`}
       >
         {/* Preview area */}
         <div
-          className="min-h-[220px] bg-[#0a0c0f] flex items-center justify-center relative"
+          className="min-h-[220px] canvas-node-inset flex items-center justify-center relative"
         >
           {outputUrl ? (
             <video
@@ -1143,20 +1160,20 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
                   <StatusBadge status={status} progress={progress} />
                 </>
               ) : (
-                <span className="text-[11px] font-mono text-muted-foreground/30">No output yet</span>
+                <span className="text-[14px] text-muted-foreground">No output yet</span>
               )}
             </div>
           )}
           
           {error && (
             <div className="absolute bottom-2 left-2 right-2 bg-red-500/20 border border-red-500/30 rounded px-2 py-1">
-              <span className="text-[9px] font-mono text-red-400">{error}</span>
+              <span className="text-[13px] text-red-400">{error}</span>
             </div>
           )}
 
           {!error && blockedNoFirstFrame && (
             <div className="absolute bottom-2 left-2 right-2 bg-amber-500/20 border border-amber-500/30 rounded px-2 py-1">
-              <span className="text-[9px] font-mono text-amber-300">
+              <span className="text-[13px] text-amber-300">
                 {currentModel?.name} needs a first frame when references are connected. Wire an image into the blue handle.
               </span>
             </div>
@@ -1177,7 +1194,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
               folders={folders}
               placeholder="Describe the video — type @ to reference a folder…"
               disabled={isGenerating}
-              className="nodrag w-full bg-transparent resize-none outline-none text-[12px] text-foreground/90 placeholder:text-muted-foreground/40 leading-relaxed disabled:opacity-50 cursor-text"
+              className="nodrag w-full bg-transparent resize-none outline-none text-[15px] text-foreground placeholder:text-muted-foreground/50 leading-relaxed disabled:opacity-50 cursor-text"
               rows={2}
             />
           </div>
@@ -1196,9 +1213,9 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
               onChange={e => setVoiceIds(e.target.value)}
               placeholder="Voice IDs — paste from fal create-voice (max 2, comma-separated)"
               disabled={isGenerating}
-              className="nodrag w-full bg-white/[0.03] border border-white/[0.06] rounded-md px-2 py-1.5 text-[11px] font-mono text-foreground/90 placeholder:text-muted-foreground/40 outline-none focus:border-accent/40 disabled:opacity-50"
+              className="nodrag w-full bg-[var(--node-chip)] border border-border rounded-md px-2 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-accent/40 disabled:opacity-50"
             />
-            <p className="text-[9px] font-mono text-muted-foreground/40 mt-1 leading-snug">
+            <p className="text-[12px] text-muted-foreground mt-1 leading-snug">
               Reference in prompt as {`<<<voice_1>>>`} / {`<<<voice_2>>>`}. Get IDs from fal&apos;s create-voice endpoint.
             </p>
           </div>
@@ -1208,7 +1225,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
         <div className="flex items-center justify-between px-3 pb-3 gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             {/* Video count counter */}
-            <div className="flex items-center gap-0.5 px-1.5 h-6 rounded-md bg-white/5 text-[10px] font-mono text-muted-foreground">
+            <div className="flex items-center gap-0.5 px-1.5 h-7 rounded-md bg-[var(--node-chip)] text-[13px] text-muted-foreground">
               <button
                 onClick={() => setNumVideos(n => Math.max(1, n - 1))}
                 disabled={isGenerating || numVideos <= 1}
@@ -1302,7 +1319,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
                 onClick={() => setEnableAudio(a => !a)}
                 disabled={isGenerating}
                 className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors disabled:opacity-50 ${
-                  enableAudio ? 'bg-accent/20 text-accent' : 'bg-white/5 hover:bg-white/10 text-muted-foreground'
+                  enableAudio ? 'bg-accent/20 text-accent' : 'bg-[var(--node-chip)] hover:bg-[var(--surface)] text-muted-foreground'
                 }`}
                 title={enableAudio
                   ? 'Sound: ON — the model will generate audio for this video'
@@ -1318,7 +1335,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
               <button
                 onClick={() => setMuted(m => !m)}
                 className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${
-                  muted ? 'bg-white/5 hover:bg-white/10 text-muted-foreground' : 'bg-accent/20 text-accent'
+                  muted ? 'bg-[var(--node-chip)] hover:bg-[var(--surface)] text-muted-foreground' : 'bg-accent/20 text-accent'
                 }`}
                 title={muted ? 'Preview muted — click to unmute playback' : 'Preview sound on — click to mute playback'}
               >
@@ -1335,7 +1352,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
                 onClick={() => setEnableLoop(l => !l)}
                 disabled={isGenerating}
                 className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors disabled:opacity-50 ${
-                  enableLoop ? 'bg-accent/20 text-accent' : 'bg-white/5 hover:bg-white/10 text-muted-foreground'
+                  enableLoop ? 'bg-accent/20 text-accent' : 'bg-[var(--node-chip)] hover:bg-[var(--surface)] text-muted-foreground'
                 }`}
                 title="Generate looping video"
               >
@@ -1411,7 +1428,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
           <path
             d="M 0 28 A 28 28 0 0 0 28 0"
             fill="none"
-            stroke="rgba(255,255,255,0.5)"
+            stroke="var(--muted-foreground)"
             strokeWidth="2"
           />
         </svg>

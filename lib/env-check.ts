@@ -47,7 +47,7 @@ export function storageTarget(): { label: string; custom: boolean } {
 // value. Keep these short — full instructions live in the README.
 export const ENV_VAR_HINTS: Record<RequiredEnvVar, string> = {
   DATABASE_URL: 'Neon Postgres connection string — neon.tech → your project → Connection string',
-  APP_PASSWORD: 'The password you\'ll type at the SPITE login screen. Choose anything strong.',
+  APP_PASSWORD: 'The password you\'ll type at the ZtoryMade login screen. Choose anything strong.',
   FAL_KEY: 'fal.ai API key — fal.ai → Dashboard → Keys',
   R2_ACCOUNT_ID: 'Cloudflare R2 account ID — visible in the right sidebar of any R2 page',
   R2_ACCESS_KEY_ID: 'Cloudflare R2 access key — Cloudflare dashboard → R2 → Manage API tokens',

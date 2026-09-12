@@ -13,12 +13,12 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
 
   return (
     <div
-      className={`glass rounded-xl flex items-center gap-3 px-4 py-2.5 transition-all duration-200 ${
+      className={`glass rounded-full flex items-center gap-3 px-4 py-2.5 transition-all duration-200 ${
         focused
-          ? 'border-accent/40 shadow-[0_0_0_1px_rgba(107,143,168,0.2),inset_0_1px_0_rgba(255,255,255,0.12)]'
-          : 'border-white/8'
+          ? 'border-accent/40'
+          : 'border-border'
       }`}
-      style={{ border: focused ? '1px solid rgba(107,143,168,0.35)' : '1px solid rgba(255,255,255,0.08)' }}
+      style={{ border: focused ? '1px solid color-mix(in srgb, var(--accent) 45%, transparent)' : '1px solid var(--border)' }}
     >
       <MagnifyingGlass
         size={15}
@@ -32,7 +32,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="flex-1 bg-transparent text-sm font-mono text-foreground placeholder:text-muted-foreground/60 focus:outline-none tracking-wide min-w-0"
+        className="flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none tracking-wide min-w-0"
         aria-label="Search projects"
       />
       {value && (
