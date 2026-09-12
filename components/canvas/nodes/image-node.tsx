@@ -1067,7 +1067,6 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
             <img
               src={outputUrl}
               alt="Generated"
-              loading="lazy"
               decoding="async"
               className="w-full h-auto cursor-zoom-in"
               onLoad={(e) => {

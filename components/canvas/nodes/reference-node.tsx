@@ -16,6 +16,7 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
   const { setNodes } = useReactFlow()
   const [imageWidth, setImageWidth] = useState<number>((data.width as number) || 320)
   const [thumbnail, setThumbnail] = useState<string | null>((data.thumbnail as string) || null)
+  const [mediaAspect, setMediaAspect] = useState<number | null>(null)
   const widthRef = useRef(imageWidth)
   const [folderModalOpen, setFolderModalOpen] = useState(false)
   const [folderType, setFolderType] = useState<'character' | 'prop' | 'location'>('character')
@@ -30,6 +31,7 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
   useEffect(() => {
     if (data.thumbnail && data.thumbnail !== thumbnail) {
       setThumbnail(data.thumbnail as string)
+      setMediaAspect(null)
     }
   }, [data.thumbnail, thumbnail])
 
@@ -228,7 +230,8 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
         {/* Media area */}
         {thumbnail ? (
           <div
-            className="relative"
+            className="relative canvas-node-inset"
+            style={!isAudio && !isVideo ? { aspectRatio: mediaAspect ?? 16 / 9 } : undefined}
             onDoubleClick={() => { if (thumbnail && !isUploading && !isAudio) setLightboxOpen(true) }}
           >
             {isAudio ? (
@@ -251,7 +254,18 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
                 }}
               />
             ) : (
-              <img src={thumbnail} alt="" className="w-full h-auto block cursor-zoom-in" loading="lazy" decoding="async" />
+              <img
+                src={thumbnail}
+                alt=""
+                className="w-full h-full object-contain block cursor-zoom-in"
+                decoding="async"
+                onLoad={(e) => {
+                  const img = e.target as HTMLImageElement
+                  if (img.naturalWidth && img.naturalHeight) {
+                    setMediaAspect(img.naturalWidth / img.naturalHeight)
+                  }
+                }}
+              />
             )}
             {isUploading && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
