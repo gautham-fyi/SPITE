@@ -9,6 +9,8 @@ import {
 } from '@phosphor-icons/react'
 import { FAL_MODELS, getModelById, carrySetting } from '@/lib/fal-models'
 import { estimateGenerationCost, formatUSD, COST_CONFIRM_THRESHOLD_USD } from '@/lib/fal-cost'
+import { notifyProjectSpend } from '@/lib/project-spend'
+import { ProjectSpendBadge } from '@/components/canvas/project-spend-badge'
 import { useIsMobile } from '@/components/ui/use-mobile'
 import { OnboardingTour } from '@/components/onboarding/use-onboarding-tour'
 import { VersionBadge } from '@/components/version-badge'
@@ -197,6 +199,7 @@ export default function FlowThread() {
           referenceImageUrl: refUrls[0],
           referenceGroups: refUrls.length > 1 ? refUrls.slice(1).map((u) => ({ urls: [u] })) : undefined,
           settings: { aspectRatio: asp || m?.defaultAspectRatio, resolution: res || m?.defaultResolution, numImages: 1 },
+          projectId,
         }),
       })
       const submitData = await submitRes.json().catch(() => ({}))
@@ -217,6 +220,7 @@ export default function FlowThread() {
         const msg = sessionExpired ? hint : [hint, submitData.error].filter(Boolean).join(' — ')
         setError(msg || 'Submit failed'); decPending(); return
       }
+      notifyProjectSpend(projectId)
       const { request_id, model: pollModel } = submitData
       for (let k = 0; k < 120; k++) {
         await new Promise((r) => setTimeout(r, 2000))
@@ -239,7 +243,11 @@ export default function FlowThread() {
           }
           decPending(); loadBalance(); return
         }
-        if (sd.status === 'FAILED') { setError(sd.error || 'Generation failed'); decPending(); return }
+        if (sd.status === 'FAILED') {
+          setError(sd.error || 'Generation failed')
+          notifyProjectSpend(projectId)
+          decPending(); return
+        }
       }
       setError('Timed out waiting for a result.'); decPending()
     } catch (err) {
@@ -310,6 +318,7 @@ export default function FlowThread() {
             <span className="text-sm font-mono truncate flex-1">{projectName || 'Project'}</span>
             <button onClick={() => startTour('flow')} aria-label="Take the tour" title="Take the tour"
               className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"><Question size={16} /></button>
+            {projectId && <ProjectSpendBadge projectId={projectId} />}
             {balance !== null && (
               <span className="text-[10px] font-mono text-muted-foreground px-2 py-1 rounded-full border border-white/10">fal {formatUSD(balance)}</span>
             )}

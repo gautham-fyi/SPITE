@@ -11,20 +11,16 @@ import {
 import { OnboardingTour } from '@/components/onboarding/use-onboarding-tour'
 import { VersionBadge } from '@/components/version-badge'
 import { startTour } from '@/lib/onboarding'
+import { UserMenu } from '@/components/user-menu'
+import { useUser } from '@clerk/nextjs'
 
 export default function SettingsPage() {
+  const { user } = useUser()
+
   // API Key state
   const [apiKeyStatus, setApiKeyStatus] = useState<'checking' | 'connected' | 'not_set' | 'invalid'>('checking')
   const [keyPreview, setKeyPreview] = useState('')
   const [testingConnection, setTestingConnection] = useState(false)
-
-  // Password change state
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
 
   // Danger zone state. Both actions require the user to type the
   // matching phrase before the button enables — defense against a stray
@@ -161,43 +157,6 @@ export default function SettingsPage() {
     setTestingConnection(false)
   }
 
-  const handlePasswordChange = async () => {
-    setPasswordError('')
-    setPasswordSuccess(false)
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match')
-      return
-    }
-
-    if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters')
-      return
-    }
-
-    setChangingPassword(true)
-    try {
-      const res = await fetch('/api/settings/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setPasswordSuccess(true)
-        setCurrentPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-      } else {
-        setPasswordError(data.error || 'Failed to change password')
-      }
-    } catch {
-      setPasswordError('Failed to change password')
-    } finally {
-      setChangingPassword(false)
-    }
-  }
-
   const clearAllCanvasData = async () => {
     if (canvasConfirmText !== CLEAR_CANVAS_PHRASE) return
     setClearing(true)
@@ -326,6 +285,7 @@ export default function SettingsPage() {
             >
               Tour
             </button>
+            <UserMenu />
           </div>
         </div>
       </div>
@@ -375,51 +335,18 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Password Change Section */}
         <section className="space-y-4">
-          <h2 className="text-sm font-mono uppercase tracking-wider text-muted-foreground">App Password</h2>
-          <div className="glass rounded-xl p-6 space-y-4">
-            <div className="space-y-3">
-              <input
-                type="password"
-                placeholder="Current password"
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm rounded-lg bg-background/50 border border-border/50 focus:border-accent/50 focus:outline-none transition-colors"
-              />
-              <input
-                type="password"
-                placeholder="New password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm rounded-lg bg-background/50 border border-border/50 focus:border-accent/50 focus:outline-none transition-colors"
-              />
-              <input
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 text-sm rounded-lg bg-background/50 border border-border/50 focus:border-accent/50 focus:outline-none transition-colors"
-              />
-            </div>
-            {passwordError && (
-              <p className="text-xs text-destructive">{passwordError}</p>
-            )}
-            {passwordSuccess && (
-              <p className="text-xs text-accent leading-relaxed">
-                Current password verified. The password can&apos;t be changed from
-                here at runtime — update <span className="font-mono">APP_PASSWORD</span>{' '}
-                in your Vercel environment variables and redeploy to make the new
-                one take effect.
+          <h2 className="text-sm font-mono uppercase tracking-wider text-muted-foreground">Account</h2>
+          <div className="glass rounded-xl p-6 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm text-foreground truncate">
+                {user?.primaryEmailAddress?.emailAddress || user?.username || 'Signed in'}
               </p>
-            )}
-            <button
-              onClick={handlePasswordChange}
-              disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
-              className="px-4 py-2 text-xs font-mono rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {changingPassword ? 'Changing...' : 'Change Password'}
-            </button>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Manage email, password, Google, and sign out from the avatar menu.
+              </p>
+            </div>
+            <UserMenu />
           </div>
         </section>
 

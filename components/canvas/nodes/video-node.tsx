@@ -15,6 +15,7 @@ import { labelFromPrompt, DEFAULT_VIDEO_LABEL } from '@/lib/auto-name'
 import { getVideoModels, getModelById, buildModelInput, type ModelConfig, carrySetting } from '@/lib/fal-models'
 import { compileMentionsForModel } from '@/lib/mention-prompt'
 import { estimateGenerationCost, formatUSD, COST_CONFIRM_THRESHOLD_USD } from '@/lib/fal-cost'
+import { notifyProjectSpend } from '@/lib/project-spend'
 import { resolveNodeMediaUrl } from '@/lib/node-media'
 import { ConnectedInputs } from '../connected-inputs'
 import { captureVideoThumbnail } from '@/lib/video-thumbnail'
@@ -464,6 +465,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
         setStatus('failed')
         setError(result.error || 'Generation failed')
         clearPending()
+        notifyProjectSpend(projectId)
         return true
       }
 
@@ -562,6 +564,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
         setError(result.error || 'Generation failed')
         clearPending()
         toast.error(`fal: ${result.error || 'Generation failed'}`, { id: toastId })
+        notifyProjectSpend(projectId)
         return
       }
 
@@ -809,6 +812,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
           // Kling 2.6 voice IDs — parsed server-side into array.
           voiceIds: voiceIds.trim() || undefined,
         },
+        projectId,
       })
 
       // Each video is a separate fal job. Submit them ONE AT A TIME (never
@@ -841,6 +845,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
         results.push(r)
       }
       const ok = results.filter(r => r.request_id)
+      if (ok.length > 0) notifyProjectSpend(projectId)
       const failedCount = count - ok.length
       if (ok.length === 0) {
         const firstFail = results[0]

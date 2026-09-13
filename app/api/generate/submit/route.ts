@@ -5,6 +5,13 @@ import { estimateGenerationCost } from '@/lib/fal-cost'
 import { reserveSpend, rollbackSpend, tagSpendRequestId, getPerRequestLimitUsd } from '@/lib/spend-gate'
 import { getOrCreateVoiceId } from '@/lib/fal-voices'
 
+function sanitizeProjectId(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null
+  const id = raw.trim()
+  if (!id || id.length > 80 || id === 'undefined' || id === 'null') return null
+  return id
+}
+
 export async function POST(request: NextRequest) {
   // KILL SWITCH — set GENERATION_DISABLED=1 in Vercel env vars to halt
   // every new fal submission across the app without redeploying client
@@ -37,6 +44,7 @@ export async function POST(request: NextRequest) {
     referenceImageUrls,
     referenceGroups,
     settings,
+    projectId: rawProjectId,
   } = await request.json()
 
   if (!modelId) {
@@ -118,7 +126,7 @@ export async function POST(request: NextRequest) {
   // Atomic reserve — advisory-locked check-and-insert so concurrent submits
   // serialize and can't both pass the same pre-spend total (see reserveSpend).
   // ledgerId is returned for rollback if fal rejects below.
-  const reservation = await reserveSpend(model.id, costEstimate.total)
+  const reservation = await reserveSpend(model.id, costEstimate.total, sanitizeProjectId(rawProjectId))
   if (!reservation.allowed) {
     return NextResponse.json(
       {

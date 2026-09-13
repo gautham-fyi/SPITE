@@ -1,6 +1,7 @@
 import { getDb } from '@/lib/db'
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
+import { ensureSpendLedger } from '@/lib/spend-gate'
 
 // Default user ID for now (no auth)
 const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001'
@@ -44,6 +45,7 @@ export async function GET() {
   try {
     const sql = getDb()
     await ensureProjectsOrigin(sql)
+    await ensureSpendLedger()
     // Pull each project plus the URL of its "shot 1" node, if any. The
     // LATERAL join finds the first canvas_node whose data.shotId is
     // 'shot-1' for that project and returns whichever URL field it has
@@ -59,7 +61,8 @@ export async function GET() {
         COALESCE(shot1.thumb, p.thumbnail) AS thumbnail,
         COALESCE(p.origin, 'canvas') AS origin,
         p.createdat,
-        p.updatedat
+        p.updatedat,
+        COALESCE(spend.spent_usd, 0)::float8 AS spentusd
       FROM projects p
       LEFT JOIN LATERAL (
         -- COALESCE order matters here. videoThumbnail is the poster
@@ -90,6 +93,12 @@ export async function GET() {
           ) IS NOT NULL
         LIMIT 1
       ) shot1 ON true
+      LEFT JOIN (
+        SELECT project_id, SUM(estimated_usd)::float8 AS spent_usd
+        FROM spend_ledger
+        WHERE project_id IS NOT NULL
+        GROUP BY project_id
+      ) spend ON spend.project_id = p.id::text
       ORDER BY p.updatedat DESC
     `
 

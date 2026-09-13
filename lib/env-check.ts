@@ -6,7 +6,8 @@
 
 const REQUIRED_ENV_VARS = [
   'DATABASE_URL',
-  'APP_PASSWORD',
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  'CLERK_SECRET_KEY',
   'FAL_KEY',
   'R2_ACCOUNT_ID',
   'R2_ACCESS_KEY_ID',
@@ -47,7 +48,8 @@ export function storageTarget(): { label: string; custom: boolean } {
 // value. Keep these short — full instructions live in the README.
 export const ENV_VAR_HINTS: Record<RequiredEnvVar, string> = {
   DATABASE_URL: 'Neon Postgres connection string — neon.tech → your project → Connection string',
-  APP_PASSWORD: 'The password you\'ll type at the ztory login screen. Choose anything strong.',
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'Clerk publishable key — dashboard.clerk.com → API keys (starts with pk_)',
+  CLERK_SECRET_KEY: 'Clerk secret key — dashboard.clerk.com → API keys (starts with sk_)',
   FAL_KEY: 'fal.ai API key — fal.ai → Dashboard → Keys',
   R2_ACCOUNT_ID: 'Cloudflare R2 account ID — visible in the right sidebar of any R2 page',
   R2_ACCESS_KEY_ID: 'Cloudflare R2 access key — Cloudflare dashboard → R2 → Manage API tokens',
@@ -97,9 +99,9 @@ export const ENV_GROUPS: EnvGroup[] = [
   },
   {
     title: 'Your login',
-    blurb: 'The password that keeps the internet out of your canvas.',
-    vars: ['APP_PASSWORD'],
-    linkLabel: 'pick anything strong',
-    linkUrl: '',
+    blurb: 'Clerk accounts (Google, email) instead of a shared password.',
+    vars: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'],
+    linkLabel: 'Clerk dashboard',
+    linkUrl: 'https://dashboard.clerk.com/',
   },
 ]

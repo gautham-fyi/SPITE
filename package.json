@@ -15,6 +15,7 @@
     "@ai-sdk/react": "^4.0.102",
     "@aws-sdk/client-s3": "^3.1053.0",
     "@aws-sdk/s3-request-presigner": "^3.1053.0",
+    "@clerk/nextjs": "^7.9.2",
     "@fal-ai/client": "^1.10.1",
     "@hookform/resolvers": "^3.9.1",
     "@neondatabase/serverless": "^1.1.0",

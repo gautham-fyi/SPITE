@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import useSWR from 'swr'
-import { Question, Robot } from '@phosphor-icons/react'
-import { AgentChatPanel } from '@/components/agent/agent-chat-panel'
+import { Question } from '@phosphor-icons/react'
 import { ProjectCard } from './project-card'
 import { NewProjectCard } from './new-project-card'
 import { SearchBar } from './search-bar'
@@ -11,6 +10,7 @@ import { OnboardingTour } from './onboarding/use-onboarding-tour'
 import { VersionBadge } from './version-badge'
 import { SpiteLogo } from './spite-logo'
 import { startTour } from '@/lib/onboarding'
+import { UserMenu } from '@/components/user-menu'
 
 interface Project {
   id: string
@@ -20,6 +20,7 @@ interface Project {
   origin?: string
   createdat: string
   updatedat: string
+  spentusd?: number
 }
 
 const fetcher = (url: string) => fetch(url).then(r => r.json()).then(data => {
@@ -31,7 +32,6 @@ const fetcher = (url: string) => fetch(url).then(r => r.json()).then(data => {
 
 export function ProjectsDashboard() {
   const [search, setSearch] = useState('')
-  const [agentOpen, setAgentOpen] = useState(true)
   const { data: projects = [], mutate } = useSWR<Project[]>('/api/projects', fetcher)
 
   const filtered = useMemo(() => {
@@ -80,8 +80,7 @@ export function ProjectsDashboard() {
       <div className="spite-ozone-bg fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
       <div className="spite-grain" aria-hidden="true" />
 
-      <div className="relative z-10 min-h-screen flex">
-      <div className="flex-1 min-w-0">
+      <div className="relative z-10 min-h-screen">
         {/* Header */}
         <header className="sticky top-0 z-50">
           <div className="glass border-b border-border px-6 md:px-10 py-4">
@@ -103,18 +102,6 @@ export function ProjectsDashboard() {
               <div className="shrink-0 flex items-center justify-end gap-2">
                 <VersionBadge />
                 <button
-                  onClick={() => setAgentOpen(v => !v)}
-                  aria-label={agentOpen ? 'Close agent' : 'Open agent'}
-                  title={agentOpen ? 'Close agent' : 'Open agent'}
-                  className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
-                    agentOpen
-                      ? 'bg-accent/20 text-accent'
-                      : 'glass-hover text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Robot size={16} weight="regular" />
-                </button>
-                <button
                   onClick={() => startTour('dashboard')}
                   aria-label="Take the tour"
                   title="Take the tour"
@@ -122,6 +109,7 @@ export function ProjectsDashboard() {
                 >
                   <Question size={16} weight="regular" />
                 </button>
+                <UserMenu />
               </div>
             </div>
           </div>
@@ -161,6 +149,7 @@ export function ProjectsDashboard() {
                 name={project.name}
                 thumbnail={project.thumbnail || undefined}
                 lastModified={formatRelativeTime(project.updatedat)}
+                spentUsd={Number(project.spentusd) || 0}
                 onMutate={() => mutate()}
               />
             ))}
@@ -214,6 +203,7 @@ export function ProjectsDashboard() {
                     thumbnail={project.thumbnail || undefined}
                     lastModified={formatRelativeTime(project.updatedat)}
                     href={`/m/project/${project.id}`}
+                    spentUsd={Number(project.spentusd) || 0}
                     onMutate={() => mutate()}
                   />
                 ))}
@@ -221,12 +211,6 @@ export function ProjectsDashboard() {
             </section>
           )}
         </main>
-      </div>
-      {agentOpen && (
-        <div className="sticky top-0 h-screen shrink-0">
-          <AgentChatPanel surface="dashboard" onClose={() => setAgentOpen(false)} />
-        </div>
-      )}
       </div>
 
       <OnboardingTour surface="dashboard" />

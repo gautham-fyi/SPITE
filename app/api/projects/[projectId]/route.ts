@@ -1,4 +1,5 @@
 import { getDb } from '@/lib/db'
+import { deleteProjectSpend } from '@/lib/spend-gate'
 import { getR2Client } from '@/lib/r2-upload'
 import { NextRequest, NextResponse } from 'next/server'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
@@ -168,6 +169,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     await sql`DELETE FROM assets WHERE projectid = ${projectId}`
     await sql`DELETE FROM canvas_edges WHERE projectid = ${projectId}::text`
     await sql`DELETE FROM canvas_nodes WHERE projectid = ${projectId}::text`
+    await deleteProjectSpend(projectId)
     await sql`DELETE FROM projects WHERE id = ${projectId}`
 
     return NextResponse.json({

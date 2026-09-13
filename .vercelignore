@@ -1,0 +1,12 @@
+# Local media dump — never upload with CLI deploys
+stills-by-page
+
+# Secrets and env files
+.env
+.env.*
+.neon
+
+# Already skipped by Vercel, listed so a CLI upload cannot pick them up
+node_modules
+.next
+.git

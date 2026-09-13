@@ -1,25 +1,53 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import type { NextFetchEvent, NextRequest } from 'next/server'
 import { checkRequiredEnv } from '@/lib/env-check'
 import { isSchemaReady } from '@/lib/db-schema'
-import { SESSION_COOKIE_NAME, isSessionValid } from '@/lib/sessions'
 
-// Paths that must stay reachable without a login cookie.
-// - /login: the login page itself
+// Paths that must stay reachable without a Clerk session.
+// - /sign-in, /sign-up: Clerk hosted auth pages
+// - /login: legacy URL, redirected to /sign-in
 // - /setup: shown when required env vars are missing
-// - /api/auth/verify + /api/auth/logout: the login/logout endpoints
 // - /api/assets/cleanup: scheduled cleanup job, auth via CRON_SECRET
-// - /api/r2-image: media proxy, does its own cookie-or-signed-token check
-const PUBLIC_PATHS = [
-  '/login',
-  '/setup',
-  '/api/auth/verify',
-  '/api/auth/logout',
-  '/api/assets/cleanup',
-  '/api/r2-image',
-]
+// - /api/r2-image: media proxy, does its own Clerk-or-signed-token check
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/login(.*)',
+  '/setup(.*)',
+  '/api/assets/cleanup(.*)',
+  '/api/r2-image(.*)',
+])
 
-export async function proxy(request: NextRequest) {
+const isAuthPage = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)', '/login(.*)'])
+
+const clerkHandler = clerkMiddleware(async (auth, request) => {
+  if (request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/sign-in', request.url))
+  }
+
+  if (isPublicRoute(request)) {
+    if (isAuthPage(request)) {
+      const { userId } = await auth()
+      if (userId) return NextResponse.redirect(new URL('/', request.url))
+    }
+    return
+  }
+
+  const { userId } = await auth()
+  if (userId) return
+
+  // API callers expect JSON 401, not an HTML redirect.
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const signIn = new URL('/sign-in', request.url)
+  signIn.searchParams.set('redirect_url', request.nextUrl.pathname + request.nextUrl.search)
+  return NextResponse.redirect(signIn)
+})
+
+export default async function proxy(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl
 
   // First gate: refuse to boot if required env vars are missing. Sends
@@ -57,47 +85,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/setup', request.url))
   }
 
-  // Third gate: validate the session token against the sessions table.
-  // The cookie value is now a random 256-bit token, not a static
-  // string, so a captured cookie can be invalidated server-side by
-  // logout / expiry.
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value
-  const isAuthenticated = await isSessionValid(token)
-
-  const isPublic = PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(p + '/'),
-  )
-
-  if (isAuthenticated) {
-    // Already logged in: bounce away from the login/setup pages.
-    if (pathname === '/login' || pathname === '/setup') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-    return NextResponse.next()
-  }
-
-  // Not logged in:
-  if (isPublic) {
-    return NextResponse.next()
-  }
-
-  // Block API routes with a clear 401 (no HTML redirect for data calls).
-  if (pathname.startsWith('/api/')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  // Block pages by sending them to the login screen.
-  return NextResponse.redirect(new URL('/login', request.url))
+  const res = await clerkHandler(request, event)
+  return res ?? NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    // Run on everything except Next.js internals and static asset files.
-    // The image-extension exemption is anchored to `$` — paths like
-    // `/api/r2-image/foo.png/extra` still go through the proxy because
-    // they don't END in an image extension. Without the anchor, any
-    // route containing `.png` (or .svg, .jpg, etc.) anywhere in its
-    // path would silently skip authz.
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // Skip Next.js internals and static files. The image-extension
+    // exemption is anchored so paths like `/api/r2-image/foo.png/extra`
+    // still go through the proxy.
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)$).*)',
+    '/(api|trpc)(.*)',
+    '/__clerk/(.*)',
   ],
 }

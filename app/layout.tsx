@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Inter, Geist, Geist_Mono } from 'next/font/google'
-import { AuthProvider } from '@/components/auth-provider'
+import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { clerkAppearance } from '@/lib/clerk-appearance'
 import './globals.css'
 
 const montserrat = Montserrat({
@@ -50,6 +51,16 @@ if (typeof window !== 'undefined') {
   }
 }
 
+function ClerkRoot({ children }: { children: React.ReactNode }) {
+  // Setup page must render even before Clerk keys exist.
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) return children
+  return (
+    <ClerkProvider dynamic appearance={clerkAppearance}>
+      {children}
+    </ClerkProvider>
+  )
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,12 +69,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark bg-background" suppressHydrationWarning>
       <body className={`${montserrat.variable} ${inter.variable} ${geist.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground min-h-screen`} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <AuthProvider>
+        <ClerkRoot>
+          <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false} disableTransitionOnChange>
             {children}
-          </AuthProvider>
-          <Toaster position="bottom-right" />
-        </ThemeProvider>
+            <Toaster position="bottom-right" />
+          </ThemeProvider>
+        </ClerkRoot>
       </body>
     </html>
   )

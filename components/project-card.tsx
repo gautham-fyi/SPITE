@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { FilmSlate, ClockCounterClockwise, DotsThreeVertical, CopySimple, Trash } from '@phosphor-icons/react'
+import { FilmSlate, ClockCounterClockwise, DotsThreeVertical, CopySimple, Trash, Receipt } from '@phosphor-icons/react'
+import { formatUSD } from '@/lib/fal-cost'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -23,10 +24,12 @@ interface ProjectCardProps {
   genre?: string
   /** Where the card navigates. Defaults to the canvas; Flow projects pass the thread route. */
   href?: string
+  /** Estimated fal.ai spend attributed to this project. Hidden when zero. */
+  spentUsd?: number
   onMutate?: () => void
 }
 
-export function ProjectCard({ id, name, thumbnail, lastModified, genre, href, onMutate }: ProjectCardProps) {
+export function ProjectCard({ id, name, thumbnail, lastModified, genre, href, spentUsd, onMutate }: ProjectCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -193,9 +196,20 @@ export function ProjectCard({ id, name, thumbnail, lastModified, genre, href, on
             >
               {name}
             </h3>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <ClockCounterClockwise size={14} weight="thin" />
-              <time className="text-[13px] tracking-wide">{lastModified}</time>
+            <div className="flex items-center justify-between gap-2 text-muted-foreground">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <ClockCounterClockwise size={14} weight="thin" />
+                <time className="text-[13px] tracking-wide truncate">{lastModified}</time>
+              </div>
+              {typeof spentUsd === 'number' && spentUsd > 0 && (
+                <span
+                  className="flex items-center gap-1 shrink-0 text-[12px] font-mono tracking-wide"
+                  title="Estimated fal.ai spend on this project. List prices — your actual bill may differ."
+                >
+                  <Receipt size={12} weight="thin" />
+                  {formatUSD(spentUsd)}
+                </span>
+              )}
             </div>
           </div>
         </article>

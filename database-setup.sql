@@ -147,7 +147,9 @@ CREATE TABLE IF NOT EXISTS auth_attempts (
 );
 
 -- Spend ledger: server-side record of every accepted fal.ai submission.
--- Drives the per-hour USD ceiling enforced in /api/generate/submit.
+-- Drives the per-hour USD ceiling enforced in /api/generate/submit, and
+-- the per-project cumulative spend indicator. Rows with a project_id are
+-- kept; unattributed rows are still swept after 7 days.
 CREATE TABLE IF NOT EXISTS spend_ledger (
     id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     model_id       text NOT NULL,
@@ -155,9 +157,12 @@ CREATE TABLE IF NOT EXISTS spend_ledger (
     created_at     timestamptz NOT NULL DEFAULT now(),
     -- request_id: fal request id tagged after submit, so a rejected job's
     -- reservation can be rolled back precisely.
-    request_id     text
+    request_id     text,
+    -- project_id: which canvas/Flow this generation was billed against.
+    project_id     text
 );
 ALTER TABLE spend_ledger ADD COLUMN IF NOT EXISTS request_id text;
+ALTER TABLE spend_ledger ADD COLUMN IF NOT EXISTS project_id text;
 
 -- App settings: small key/value store for options editable from the
 -- Settings UI at runtime (e.g. data-retention windows), overriding env
@@ -200,5 +205,6 @@ CREATE INDEX IF NOT EXISTS idx_sessions_expires         ON sessions (expires_at)
 CREATE INDEX IF NOT EXISTS idx_auth_attempts_ip_time    ON auth_attempts (ip, attempted_at);
 CREATE INDEX IF NOT EXISTS idx_spend_ledger_time        ON spend_ledger (created_at);
 CREATE INDEX IF NOT EXISTS idx_spend_ledger_request     ON spend_ledger (request_id);
+CREATE INDEX IF NOT EXISTS idx_spend_ledger_project     ON spend_ledger (project_id);
 CREATE INDEX IF NOT EXISTS idx_genhistory_project_created ON generation_history (project_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_threads_updated ON agent_threads (updated_at DESC);

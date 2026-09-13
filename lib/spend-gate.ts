@@ -22,6 +22,8 @@ async function ensureSchema(sql: Sql) {
   // rolled back. Added idempotently for installs that predate this column.
   await sql`ALTER TABLE spend_ledger ADD COLUMN IF NOT EXISTS request_id text`
   await sql`CREATE INDEX IF NOT EXISTS idx_spend_ledger_request ON spend_ledger (request_id)`
+  await sql`ALTER TABLE spend_ledger ADD COLUMN IF NOT EXISTS project_id text`
+  await sql`CREATE INDEX IF NOT EXISTS idx_spend_ledger_project ON spend_ledger (project_id)`
   schemaEnsured = true
 }
 
@@ -81,16 +83,18 @@ export interface SpendGateResult {
 export async function reserveSpend(
   modelId: string,
   costUsd: number,
+  projectId?: string | null,
 ): Promise<SpendGateResult> {
   const limitUsd = getLimitUsd()
   const sql = getDb()
   await ensureSchema(sql)
+  const pid = projectId?.trim() || null
 
   if (limitUsd === 0) {
     // Owner opted out — record for visibility, skip the gate.
     const rows = (await sql`
-      INSERT INTO spend_ledger (model_id, estimated_usd)
-      VALUES (${modelId}, ${costUsd})
+      INSERT INTO spend_ledger (model_id, estimated_usd, project_id)
+      VALUES (${modelId}, ${costUsd}, ${pid})
       RETURNING id
     `) as { id: string }[]
     return {
@@ -118,8 +122,8 @@ export async function reserveSpend(
   const txn = (await sql.transaction([
     sql`SELECT pg_advisory_xact_lock(${SPEND_GATE_LOCK_KEY}::bigint)`,
     sql`
-      INSERT INTO spend_ledger (model_id, estimated_usd)
-      SELECT ${modelId}, ${costUsd}
+      INSERT INTO spend_ledger (model_id, estimated_usd, project_id)
+      SELECT ${modelId}, ${costUsd}, ${pid}
       WHERE (
         SELECT COALESCE(SUM(estimated_usd), 0)
         FROM spend_ledger
@@ -209,13 +213,42 @@ export async function rollbackSpendByRequestId(requestId: string | undefined): P
   }
 }
 
-// Background sweep from the cleanup cron — drop rows beyond the
-// rate-limit window so the table doesn't grow indefinitely.
+export async function getProjectSpend(projectId: string): Promise<{ totalUsd: number; generations: number }> {
+  const sql = getDb()
+  await ensureSchema(sql)
+  const rows = (await sql`
+    SELECT
+      COALESCE(SUM(estimated_usd), 0)::float8 AS total,
+      COUNT(*)::int AS generations
+    FROM spend_ledger
+    WHERE project_id = ${projectId}
+  `) as { total: number; generations: number }[]
+  return {
+    totalUsd: Number(rows[0]?.total ?? 0),
+    generations: Number(rows[0]?.generations ?? 0),
+  }
+}
+
+export async function deleteProjectSpend(projectId: string): Promise<void> {
+  const sql = getDb()
+  await ensureSchema(sql)
+  await sql`DELETE FROM spend_ledger WHERE project_id = ${projectId}`
+}
+
+/** Idempotent schema for spend_ledger. Call before queries that join it. */
+export async function ensureSpendLedger(): Promise<void> {
+  await ensureSchema(getDb())
+}
+
 export async function purgeOldSpendLedger(): Promise<number> {
   const sql = getDb()
   await ensureSchema(sql)
+  // Keep attributed rows — they are the project's running total.
+  // Unattributed reservations are only for the hourly gate.
   const deleted = (await sql`
-    DELETE FROM spend_ledger WHERE created_at < now() - interval '7 days' RETURNING id
+    DELETE FROM spend_ledger
+    WHERE project_id IS NULL AND created_at < now() - interval '7 days'
+    RETURNING id
   `) as unknown[]
   return deleted.length
 }

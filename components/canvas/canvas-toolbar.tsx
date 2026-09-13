@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, MagnifyingGlassPlus, MagnifyingGlassMinus, CornersOut, Lock, CheckCircle, Circle, CircleNotch, GearSix, ListChecks, Question, Rows, Robot } from '@phosphor-icons/react'
+import { ArrowLeft, MagnifyingGlassPlus, MagnifyingGlassMinus, CornersOut, CheckCircle, Circle, CircleNotch, GearSix, ListChecks, Question, Rows, Robot } from '@phosphor-icons/react'
 import { useReactFlow } from '@xyflow/react'
 import { useState } from 'react'
-import { useAuth } from '@/components/auth-provider'
 import { startTour } from '@/lib/onboarding'
+import { UserMenu } from '@/components/user-menu'
 import { FalBalanceBadge } from './fal-balance-badge'
+import { ProjectSpendBadge } from './project-spend-badge'
 import { VersionBadge } from '@/components/version-badge'
 import { SpiteLogo } from '@/components/spite-logo'
 
@@ -29,11 +30,6 @@ interface CanvasToolbarProps {
 export function CanvasToolbar({ projectName, onProjectNameChange, saveStatus, projectId, jobsPanelOpen, onToggleJobsPanel, activeJobCount = 0, onArrangeShots, agentOpen, onToggleAgent }: CanvasToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const [editing, setEditing] = useState(false)
-  const { logout } = useAuth()
-
-  const handleLogout = () => {
-    logout()
-  }
 
   return (
     <div className="glass flex items-center justify-between px-4 h-14 shrink-0 relative z-10">
@@ -159,6 +155,7 @@ export function CanvasToolbar({ projectName, onProjectNameChange, saveStatus, pr
 
         <VersionBadge className="mr-1" />
 
+        <ProjectSpendBadge projectId={projectId} />
         <FalBalanceBadge />
 
         <button
@@ -178,13 +175,9 @@ export function CanvasToolbar({ projectName, onProjectNameChange, saveStatus, pr
           <GearSix size={16} weight="thin" />
         </Link>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center w-8 h-8 rounded-lg glass-hover transition-colors ml-1 text-muted-foreground hover:text-destructive"
-          title="Logout and lock canvas"
-        >
-          <Lock size={16} weight="thin" />
-        </button>
+        <div className="ml-1 flex items-center">
+          <UserMenu />
+        </div>
       </div>
     </div>
   )

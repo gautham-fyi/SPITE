@@ -15,6 +15,7 @@ import { labelFromPrompt, DEFAULT_IMAGE_LABEL } from '@/lib/auto-name'
 import { getImageModels, getModelById, buildModelInput, type ModelConfig, carrySetting } from '@/lib/fal-models'
 import { compileMentionsForModel } from '@/lib/mention-prompt'
 import { estimateGenerationCost, formatUSD, COST_CONFIRM_THRESHOLD_USD } from '@/lib/fal-cost'
+import { notifyProjectSpend } from '@/lib/project-spend'
 import { resolveNodeMediaUrl } from '@/lib/node-media'
 import { ConnectedInputs } from '../connected-inputs'
 
@@ -488,6 +489,7 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
         setStatus('failed')
         setError(result.error || 'Generation failed')
         clearPending()
+        notifyProjectSpend(projectId)
         return true
       }
 
@@ -583,6 +585,7 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
         setError(result.error || 'Generation failed')
         clearPending()
         toast.error(`fal: ${result.error || 'Generation failed'}`, { id: toastId })
+        notifyProjectSpend(projectId)
         return
       }
 
@@ -759,6 +762,7 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
         referenceImageUrl: connectedImageUrl,
         referenceGroups: allRefGroups.length > 0 ? allRefGroups : undefined,
         settings: { aspectRatio, resolution, numImages: 1 },
+        projectId,
       })
       const count = Math.max(1, Math.min(12, numImages))
       // Submit the N jobs ONE AT A TIME — never overlapping. Firing them in
@@ -793,6 +797,7 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
       }
 
       const ok = results.filter(r => r.request_id)
+      if (ok.length > 0) notifyProjectSpend(projectId)
       const failedCount = count - ok.length
       if (ok.length === 0) {
         const firstFail = results[0]

@@ -1,8 +1,8 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { getR2Client, verifyImageToken } from '@/lib/r2-upload'
-import { SESSION_COOKIE_NAME, isSessionValid } from '@/lib/sessions'
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
     const { path } = await params
 
     // Two URL shapes are accepted:
-    //   1. /api/r2-image/<key...>                  — browser, cookie-auth
+    //   1. /api/r2-image/<key...>                  — browser, Clerk session
     //   2. /api/r2-image/s/<exp>/<sig>/<key...>    — fal.ai, path-token (no
     //      query string so the URL ends in the file extension and passes
     //      strict validators like Kling 3.0's `elements`).
@@ -28,8 +28,8 @@ export async function GET(
       key = path.join('/')
     }
 
-    const cookieToken = request.cookies.get(SESSION_COOKIE_NAME)?.value
-    const cookieOk = await isSessionValid(cookieToken)
+    const { userId } = await auth()
+    const cookieOk = !!userId
     const { searchParams } = new URL(request.url)
     const queryTokenOk = verifyImageToken(key, searchParams.get('exp'), searchParams.get('sig'))
     if (!cookieOk && !pathTokenOk && !queryTokenOk) {
