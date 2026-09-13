@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, CaretDown, CaretUp, Play, CaretLeft, CaretRight, Image as ImageIcon, DownloadSimple, CircleNotch, Trash } from '@phosphor-icons/react'
+import { Plus, CaretDown, CaretUp, Play, CaretLeft, CaretRight, Image as ImageIcon, DownloadSimple, CircleNotch, Trash, FilmStrip } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { exportScenesAsZip } from '@/lib/export-scenes'
+import { exportScenesAsVideo } from '@/lib/export-video'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 export interface Shot {
   id: string
@@ -68,7 +70,7 @@ export function SceneTimeline({
       // Ignore write failures.
     }
   }
-  const [exporting, setExporting] = useState(false)
+  const [exporting, setExporting] = useState<'zip' | 'video' | null>(null)
   // Confirmation modal for scene deletion. Null = no modal. Stores
   // the scene id + name so the message can name the scene the user
   // is about to delete.
@@ -81,7 +83,7 @@ export function SceneTimeline({
   // produce gaps, not renumbering). User asked for these defaults.
   const handleExport = async () => {
     if (exporting) return
-    setExporting(true)
+    setExporting('zip')
     const toastId = toast.loading('Building zip...')
     try {
       const result = await exportScenesAsZip(
@@ -98,7 +100,31 @@ export function SceneTimeline({
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Export failed', { id: toastId })
     } finally {
-      setExporting(false)
+      setExporting(null)
+    }
+  }
+
+  const handleExportVideo = async () => {
+    if (exporting) return
+    setExporting('video')
+    const toastId = toast.loading('Loading FFmpeg…')
+    try {
+      const result = await exportScenesAsVideo(
+        scenes,
+        projectName || 'cut',
+        (message) => toast.loading(message, { id: toastId }),
+      )
+      const skippedCount = result.skipped.length
+      toast.success(
+        skippedCount > 0
+          ? `Cut ${result.fileCount} shot${result.fileCount === 1 ? '' : 's'} into one video (${skippedCount} skipped)`
+          : `Cut ${result.fileCount} shot${result.fileCount === 1 ? '' : 's'} into one video`,
+        { id: toastId },
+      )
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Video export failed', { id: toastId })
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -169,20 +195,35 @@ export function SceneTimeline({
             {activeShotCount} {activeShotCount === 1 ? 'shot' : 'shots'}
           </span>
         </button>
-        <button
-          data-tour="export"
-          onClick={handleExport}
-          disabled={exporting}
-          className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
-          title="Download every tagged shot across all scenes as a zip"
-        >
-          {exporting ? (
-            <CircleNotch size={12} weight="bold" className="animate-spin" />
-          ) : (
-            <DownloadSimple size={12} weight="bold" />
-          )}
-          <span>{exporting ? 'Exporting...' : 'Export'}</span>
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            data-tour="export"
+            onClick={handleExport}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
+            title="Download every tagged shot across all scenes as a zip"
+          >
+            {exporting === 'zip' ? (
+              <CircleNotch size={12} weight="bold" className="animate-spin" />
+            ) : (
+              <DownloadSimple size={12} weight="bold" />
+            )}
+            <span>{exporting === 'zip' ? 'Exporting…' : 'Export'}</span>
+          </button>
+          <button
+            onClick={handleExportVideo}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
+            title="Stitch tagged shots in order into one video in the browser"
+          >
+            {exporting === 'video' ? (
+              <CircleNotch size={12} weight="bold" className="animate-spin" />
+            ) : (
+              <FilmStrip size={12} weight="bold" />
+            )}
+            <span>{exporting === 'video' ? 'Cutting…' : 'Video'}</span>
+          </button>
+        </div>
       </div>
     )
   }
@@ -275,9 +316,11 @@ export function SceneTimeline({
                     >
                       {shot.thumbnail ? (
                         <img
-                          src={shot.thumbnail}
+                          src={mediaPreviewUrl(shot.thumbnail, 'thumb')}
                           alt={shot.label || `Shot ${shot.order}`}
                           className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                           draggable={false}
                         />
                       ) : !shot.nodeId ? (
@@ -430,16 +473,29 @@ export function SceneTimeline({
           <button
             data-tour="export"
             onClick={handleExport}
-            disabled={exporting}
+            disabled={!!exporting}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
             title="Download every tagged shot across all scenes as a zip"
           >
-            {exporting ? (
+            {exporting === 'zip' ? (
               <CircleNotch size={13} weight="bold" className="animate-spin" />
             ) : (
               <DownloadSimple size={13} weight="bold" />
             )}
-            <span>{exporting ? 'Exporting...' : 'Export shots'}</span>
+            <span>{exporting === 'zip' ? 'Exporting…' : 'Export shots'}</span>
+          </button>
+          <button
+            onClick={handleExportVideo}
+            disabled={!!exporting}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[13px] text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
+            title="Stitch tagged shots in order into one video in the browser"
+          >
+            {exporting === 'video' ? (
+              <CircleNotch size={13} weight="bold" className="animate-spin" />
+            ) : (
+              <FilmStrip size={13} weight="bold" />
+            )}
+            <span>{exporting === 'video' ? 'Cutting…' : 'Export video'}</span>
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import useSWR from 'swr'
 import { AddToFolderModal } from './add-to-folder-modal'
 import { AssetThumb } from './asset-thumb'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -689,7 +690,7 @@ export function LeftToolbar({
                                   <div className="w-7 h-7 rounded overflow-hidden bg-card border border-border/30 shrink-0 flex items-center justify-center">
                                     {f.assets[0]?.r2_url ? (
                                       <img
-                                        src={f.assets[0].r2_url}
+                                        src={mediaPreviewUrl(f.assets[0].r2_url, 'thumb')}
                                         alt=""
                                         className="w-full h-full object-cover"
                                         loading="lazy"
@@ -879,7 +880,7 @@ export function LeftToolbar({
                         <div className="aspect-video bg-[#0D0F12] relative overflow-hidden">
                           {f.assets[0]?.r2_url ? (
                             <img
-                              src={f.assets[0].r2_url}
+                              src={mediaPreviewUrl(f.assets[0].r2_url, 'thumb')}
                               alt=""
                               className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                               loading="lazy"
@@ -1531,7 +1532,7 @@ export function LeftToolbar({
                               <div className="flex gap-1 mb-1.5">
                                 {folder.assets.slice(0, 2).map((asset, i) => (
                                   <div key={i} className="w-8 h-8 rounded bg-white/5 overflow-hidden">
-                                    <img src={asset.r2_url} alt="" className="w-full h-full object-cover" />
+                                    <img src={mediaPreviewUrl(asset.r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                   </div>
                                 ))}
                                 {folder.assets.length === 0 && (
@@ -1572,7 +1573,7 @@ export function LeftToolbar({
                               <div className="flex gap-1 mb-1.5">
                                 {folder.assets.slice(0, 2).map((asset, i) => (
                                   <div key={i} className="w-8 h-8 rounded bg-white/5 overflow-hidden">
-                                    <img src={asset.r2_url} alt="" className="w-full h-full object-cover" />
+                                    <img src={mediaPreviewUrl(asset.r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                   </div>
                                 ))}
                                 {folder.assets.length === 0 && (
@@ -1613,7 +1614,7 @@ export function LeftToolbar({
                               <div className="flex gap-1 mb-1.5">
                                 {folder.assets.slice(0, 2).map((asset, i) => (
                                   <div key={i} className="w-8 h-8 rounded bg-white/5 overflow-hidden">
-                                    <img src={asset.r2_url} alt="" className="w-full h-full object-cover" />
+                                    <img src={mediaPreviewUrl(asset.r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                   </div>
                                 ))}
                                 {folder.assets.length === 0 && (
@@ -2119,7 +2120,7 @@ export function LeftToolbar({
                           </button>
                           <div className="w-10 h-10 rounded overflow-hidden shrink-0 bg-card border border-border/30">
                             {folder.assets[0]?.r2_url ? (
-                              <img src={folder.assets[0].r2_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                              <img src={mediaPreviewUrl(folder.assets[0].r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <cat.icon size={14} className="text-muted-foreground/30" />

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { MagnifyingGlass, Plus, ArrowLeft, User, MapPin, Package, X, UploadSimple } from '@phosphor-icons/react'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 type FolderType = 'character' | 'prop' | 'location' | 'general'
 
@@ -531,7 +532,7 @@ export function AddToFolderModal({ open, onClose, folderType, projectId, assetId
                   {/* Selected assets */}
                   {selectedAssets.map(asset => (
                     <div key={asset.id} className="relative w-16 h-16 rounded-lg overflow-hidden bg-white/5 group shrink-0">
-                      <img src={asset.url} alt="" className={`w-full h-full object-cover ${asset.isUploading ? 'opacity-50' : ''}`} />
+                      <img src={mediaPreviewUrl(asset.url, 'thumb')} alt="" className={`w-full h-full object-cover ${asset.isUploading ? 'opacity-50' : ''}`} loading="lazy" decoding="async" />
                       {asset.isUploading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                           <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -586,7 +587,7 @@ export function AddToFolderModal({ open, onClose, folderType, projectId, assetId
                             onClick={() => handleAddFromPicker(asset)}
                             className="aspect-square rounded overflow-hidden bg-white/5 hover:ring-2 hover:ring-accent transition-all"
                           >
-                            <img src={asset.r2_url} alt="" className="w-full h-full object-cover" />
+                            <img src={mediaPreviewUrl(asset.r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                           </button>
                         ))}
                       {availableAssets.filter(a => !selectedAssets.find(s => s.id === a.id)).length === 0 && (
@@ -690,7 +691,7 @@ export function AddToFolderModal({ open, onClose, folderType, projectId, assetId
                         <div className="flex gap-1 shrink-0">
                           {folder.assets.slice(0, 2).map((asset, i) => (
                             <div key={i} className="w-10 h-10 rounded bg-white/5 overflow-hidden">
-                              <img src={asset.r2_url} alt="" className="w-full h-full object-cover" />
+                              <img src={mediaPreviewUrl(asset.r2_url, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                             </div>
                           ))}
                           {folder.assets.length === 0 && (

@@ -6,6 +6,7 @@ import { ArrowsInSimple, Image as ImageIcon, CircleNotch, CheckCircle, UploadSim
 import { memo, useState, useEffect, useRef, useCallback } from 'react'
 import { NodeActionToolbar } from './node-toolbar'
 import { encodeScaled, autoFitUnderBytes, formatBytes, KLING_MAX_BYTES } from '@/lib/image-compress'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 function CompressNodeImpl({ id, data, selected }: NodeProps) {
   const params = useParams()
@@ -240,7 +241,7 @@ function CompressNodeImpl({ id, data, selected }: NodeProps) {
           <>
             {previewSrc && (
               <div className="relative max-h-[140px] overflow-hidden bg-black/40 flex items-center justify-center">
-                <img src={previewSrc} alt="" className="w-full h-auto object-contain max-h-[140px]" loading="lazy" decoding="async" />
+                <img src={mediaPreviewUrl(previewSrc)} alt="" className="w-full h-auto object-contain max-h-[140px]" loading="lazy" decoding="async" />
               </div>
             )}
 

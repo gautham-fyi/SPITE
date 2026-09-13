@@ -1143,6 +1143,7 @@ function VideoNodeImpl({ id, data, selected }: NodeProps) {
           {outputUrl ? (
             <video
               src={outputUrl}
+              poster={typeof data.videoThumbnail === 'string' ? data.videoThumbnail : undefined}
               controls
               loop={enableLoop}
               muted={muted}

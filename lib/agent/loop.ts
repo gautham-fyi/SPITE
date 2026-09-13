@@ -19,7 +19,7 @@ export function prepareAgentStep(maxSteps = AGENT_MAX_STEPS) {
 
     const nudge = remaining <= 8
       ? 'Few steps left. Finish the highest-value remaining work, then say what is still unfinished.'
-      : 'Keep going until the user request is fully done. Prefer addNodes, updateNodes, and generateNodes for batches. Do not stop mid-sequence.'
+      : 'Keep going until prompts and nodes are in place. Prefer addNodes and updateNodes for batches. Do not call generate in this turn if you just wrote prompts — stop and ask the user to verify.'
 
     return {
       instructions: [

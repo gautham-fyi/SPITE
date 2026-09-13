@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReactFlow, useStore } from '@xyflow/react'
 import { X, LinkBreak, WarningCircle } from '@phosphor-icons/react'
 import { resolveNodeMediaUrl } from '@/lib/node-media'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 // A small count badge pinned just outside a media input handle. Click it to see
 // exactly what's wired into that input — thumbnails of each connected source —
@@ -119,9 +120,11 @@ export function ConnectedInputs({ nodeId, handleId, side, top, label = 'Connecte
               <div key={it.edgeId} className="relative group" title={it.title}>
                 {it.url ? (
                   <img
-                    src={it.url}
+                    src={mediaPreviewUrl(it.url, 'thumb')}
                     alt=""
                     className="w-[52px] h-[52px] rounded-md object-cover border border-white/10 bg-black/40"
+                    loading="lazy"
+                    decoding="async"
                     draggable={false}
                   />
                 ) : (

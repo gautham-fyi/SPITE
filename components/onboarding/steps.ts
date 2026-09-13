@@ -88,7 +88,7 @@ export const TOURS: Record<TourSurface, TourStep[]> = {
     {
       target: '[data-tour="scene-timeline"]',
       title: 'Scenes, shots & pages',
-      body: 'Assign a node to a shot from the badge on the node itself — assigned shots always glow yellow so you can spot them at a glance. The strip up here switches between scenes, and you can keep as many pages / scenes / canvases as you need. Export drops a storyboard zip, one folder per scene.',
+      body: 'Assign a node to a shot from the badge on the node itself — assigned shots always glow yellow so you can spot them at a glance. The strip up here switches between scenes, and you can keep as many pages / scenes / canvases as you need. Export drops a storyboard zip, or stitches shots in order into one video in the browser.',
       image: '/onboarding/canvas-shot.png',
     },
     {

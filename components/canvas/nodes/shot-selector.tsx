@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { CaretDown, Check, Plus, FilmStrip, Image as ImageIcon, X, ArrowsClockwise } from '@phosphor-icons/react'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 export interface ShotOption {
   id: string
@@ -79,7 +80,7 @@ export function ShotSelector({ selectedShotId, shots, onSelect, onNewShot, onRep
                     {/* Thumbnail */}
                     <div className="w-8 h-5 rounded overflow-hidden bg-black/40 shrink-0 flex items-center justify-center">
                       {shot.thumbnail ? (
-                        <img src={shot.thumbnail} alt="" className="w-full h-full object-cover" />
+                        <img src={mediaPreviewUrl(shot.thumbnail, 'thumb')} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       ) : shot.hasVideo ? (
                         <FilmStrip size={10} className="text-muted-foreground/40" />
                       ) : (

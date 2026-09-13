@@ -22,6 +22,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: ['sharp'],
+  // ffmpeg.wasm ships modern ESM; bundle it so Turbopack/webpack can
+  // resolve the client-only worker + core loaders.
+  transpilePackages: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
   // What build is live, exposed to the client. The version + build stamp are
   // what the UI shows (readable, ordered); the SHA is kept for the tooltip so
   // a build can still be traced back to an exact commit.

@@ -10,6 +10,7 @@ import {
   ImageSquare,
   FilmSlate,
 } from '@phosphor-icons/react'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 type Job = {
   id: string
@@ -144,7 +145,7 @@ function JobRow({ job, onClick }: { job: Job; onClick: () => void }) {
       <div className="w-12 h-12 rounded-md bg-zinc-900/80 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
         {job.outputUrl && (job.status === 'completed' || job.status === 'failed') ? (
           job.mediaType === 'image' ? (
-            <img src={job.outputUrl} className="w-full h-full object-cover" alt="" draggable={false} />
+            <img src={mediaPreviewUrl(job.outputUrl, 'thumb')} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" draggable={false} />
           ) : (
             <video src={job.outputUrl} muted playsInline className="w-full h-full object-cover" />
           )

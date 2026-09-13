@@ -17,6 +17,7 @@ import { compileMentionsForModel } from '@/lib/mention-prompt'
 import { estimateGenerationCost, formatUSD, COST_CONFIRM_THRESHOLD_USD } from '@/lib/fal-cost'
 import { notifyProjectSpend } from '@/lib/project-spend'
 import { resolveNodeMediaUrl } from '@/lib/node-media'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 import { ConnectedInputs } from '../connected-inputs'
 
 const IMAGE_MODELS = getImageModels()
@@ -1070,8 +1071,9 @@ function ImageNodeImpl({ id, data, selected }: NodeProps) {
         >
           {outputUrl ? (
             <img
-              src={outputUrl}
+              src={mediaPreviewUrl(outputUrl)}
               alt="Generated"
+              loading="lazy"
               decoding="async"
               className="w-full h-auto cursor-zoom-in"
               onLoad={(e) => {

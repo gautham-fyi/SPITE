@@ -3,6 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getR2Client, verifyImageToken } from '@/lib/r2-upload'
+import { presignPreviewOrNull, snapPreviewWidth } from '@/lib/r2-preview'
 
 export async function GET(
   request: NextRequest,
@@ -61,6 +62,26 @@ export async function GET(
     // image fetcher requires `Access-Control-Allow-Origin: *`, which we can
     // only guarantee from this function, not from a raw R2 presigned URL.
     if (!signedAuth) {
+      // Node / library tiles pass ?preview=240|720. First hit builds a
+      // cached JPEG in R2; after that we 302 to the small file so the
+      // browser never downloads a 2K/4K original just to fill a 360px card.
+      // Fal signed-token URLs never take this branch — they still get the
+      // original bytes.
+      const previewWidth = snapPreviewWidth(searchParams.get('preview'))
+      if (previewWidth) {
+        try {
+          const previewUrl = await presignPreviewOrNull(key, previewWidth)
+          if (previewUrl) {
+            return new NextResponse(null, {
+              status: 302,
+              headers: { Location: previewUrl, 'Cache-Control': 'private, no-store' },
+            })
+          }
+        } catch (err) {
+          console.error('[R2 Image Proxy] preview failed, falling back to original:', err)
+        }
+      }
+
       // 1h expiry: long enough that a <video> paused then scrubbed later
       // won't hit an expired URL mid-playback, short enough to bound the
       // capability if the redirect URL ever leaks.

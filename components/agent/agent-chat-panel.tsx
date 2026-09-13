@@ -25,6 +25,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import { useCanvasAgent, type AddNodeInput, type NodePatch } from './canvas-agent-context'
+import { allowAgentGeneration, lastUserPlainText, summarizeTargets, type GenerationTarget } from '@/lib/agent/generation-gate'
 import { AgentMarkdown } from './agent-markdown'
 import {
   AGENT_MODELS,
@@ -388,6 +389,8 @@ function AgentThreadChat({
   const titleRef = useRef(title)
   const modeRef = useRef(mode)
   const modelRef = useRef(modelId)
+  const messagesRef = useRef<UIMessage[]>(initialMessages)
+  const mutatedThisTurnRef = useRef(false)
   titleRef.current = title
   modeRef.current = mode
   modelRef.current = modelId
@@ -467,6 +470,29 @@ function AgentThreadChat({
     [projectId, surface],
   )
 
+  const gateGeneration = (nodeIds: string[]) => {
+    const snap = canvas?.inspect()
+    const targets: GenerationTarget[] = nodeIds.map((nodeId) => {
+      const node = snap?.nodes.find((n) => n.id === nodeId)
+      return {
+        nodeId,
+        type: node?.type,
+        shotId: node?.shotId,
+        label: node?.label,
+        prompt: node?.prompt,
+        modelId: node?.modelId,
+        duration: node?.duration,
+        numImages: node?.numImages,
+        resolution: node?.resolution,
+      }
+    })
+    return allowAgentGeneration({
+      lastUserText: lastUserPlainText(messagesRef.current),
+      mutatedThisTurn: mutatedThisTurnRef.current,
+      targets,
+    })
+  }
+
   const { messages, sendMessage, addToolOutput, status, stop, error } = useChat({
     id: threadId,
     messages: initialMessages,
@@ -501,8 +527,26 @@ function AgentThreadChat({
 
       try {
         switch (name) {
-          case 'inspectLiveCanvas':
-            return ok(canvas.inspect())
+          case 'inspectLiveCanvas': {
+            const snap = canvas.inspect()
+            const pending = snap.nodes.filter((n) =>
+              (n.type === 'imageGen' || n.type === 'videoGen') &&
+              (!n.sceneId || n.sceneId === snap.activeSceneId),
+            )
+            const summary = summarizeTargets(pending)
+            return ok({
+              ...snap,
+              generationPlan: {
+                estimate: summary.estimateLabel,
+                imageCount: summary.imageCount,
+                videoCount: summary.videoCount,
+                shots: summary.lines,
+                note: summary.videoCount > 0
+                  ? 'Video is very expensive. Recap prompts and wait for a new confirm before generate.'
+                  : 'Recap prompts and wait for a new confirm before generate.',
+              },
+            })
+          }
           case 'addScene':
             return ok(canvas.addScene(typeof input.name === 'string' ? input.name : undefined))
           case 'renameScene':
@@ -512,15 +556,19 @@ function AgentThreadChat({
           case 'switchScene':
             return ok(canvas.switchScene(String(input.sceneId || '')))
           case 'addNode':
+            mutatedThisTurnRef.current = true
             return ok(canvas.addNode({
               ...(input as AddNodeInput),
               assetUrl: typeof input.assetUrl === 'string' ? input.assetUrl : undefined,
             }))
           case 'addNodes':
+            mutatedThisTurnRef.current = true
             return ok(canvas.addNodes(Array.isArray(input.nodes) ? input.nodes as AddNodeInput[] : []))
           case 'updateNode':
+            mutatedThisTurnRef.current = true
             return ok(canvas.updateNode(String(input.nodeId || ''), patchFromTool(input)))
           case 'updateNodes':
+            mutatedThisTurnRef.current = true
             return ok(canvas.updateNodes(
               Array.isArray(input.nodes)
                 ? (input.nodes as Array<Record<string, unknown>>).map((item) => ({
@@ -532,6 +580,7 @@ function AgentThreadChat({
           case 'deleteNodes':
             return ok(canvas.deleteNodes(Array.isArray(input.nodeIds) ? input.nodeIds.map(String) : []))
           case 'connectNodes':
+            mutatedThisTurnRef.current = true
             return ok(canvas.connectNodes(
               String(input.sourceId || ''),
               String(input.targetId || ''),
@@ -539,6 +588,7 @@ function AgentThreadChat({
               typeof input.targetHandle === 'string' ? input.targetHandle : undefined,
             ))
           case 'connectMany':
+            mutatedThisTurnRef.current = true
             return ok(canvas.connectMany(
               Array.isArray(input.edges)
                 ? (input.edges as Array<Record<string, unknown>>).map((edge) => ({
@@ -549,10 +599,22 @@ function AgentThreadChat({
                   }))
                 : [],
             ))
-          case 'generateNode':
-            return ok(canvas.generateNode(String(input.nodeId || '')))
-          case 'generateNodes':
-            return ok(canvas.generateNodes(Array.isArray(input.nodeIds) ? input.nodeIds.map(String) : []))
+          case 'generateNode': {
+            const nodeId = String(input.nodeId || '')
+            const gate = gateGeneration([nodeId])
+            if (!gate.allowed) {
+              return ok({ blocked: true, generated: false, error: gate.error, estimate: gate.summary.estimateLabel, shots: gate.summary.lines })
+            }
+            return ok({ ...canvas.generateNode(nodeId), estimate: gate.summary.estimateLabel })
+          }
+          case 'generateNodes': {
+            const nodeIds = Array.isArray(input.nodeIds) ? input.nodeIds.map(String) : []
+            const gate = gateGeneration(nodeIds)
+            if (!gate.allowed) {
+              return ok({ blocked: true, generated: false, error: gate.error, estimate: gate.summary.estimateLabel, shots: gate.summary.lines })
+            }
+            return ok({ ...canvas.generateNodes(nodeIds), estimate: gate.summary.estimateLabel })
+          }
           case 'focusNode':
             return ok(canvas.focusNode(String(input.nodeId || '')))
           case 'renameProject':
@@ -565,6 +627,7 @@ function AgentThreadChat({
       }
     },
   })
+  messagesRef.current = messages
 
   useEffect(() => {
     const el = scrollerRef.current
@@ -616,6 +679,7 @@ function AgentThreadChat({
       const nextTitle = titleFromTurn(text || sendText, readyFiles)
       if (nextTitle !== 'New chat') saveTitle(nextTitle)
     }
+    mutatedThisTurnRef.current = false
     void sendMessage({
       text: sendText,
       files: readyFiles,

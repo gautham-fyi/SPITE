@@ -9,6 +9,7 @@ import { ShotSelector } from './shot-selector'
 import { useSceneShots } from './use-scene-shots'
 import { AddToFolderModal } from '../add-to-folder-modal'
 import { Lightbox } from '../lightbox'
+import { mediaPreviewUrl } from '@/lib/media-preview'
 
 function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
   const params = useParams()
@@ -255,9 +256,10 @@ function ReferenceNodeImpl({ id, data, selected }: NodeProps) {
               />
             ) : (
               <img
-                src={thumbnail}
+                src={mediaPreviewUrl(thumbnail)}
                 alt=""
                 className="w-full h-full object-contain block cursor-zoom-in"
+                loading="lazy"
                 decoding="async"
                 onLoad={(e) => {
                   const img = e.target as HTMLImageElement

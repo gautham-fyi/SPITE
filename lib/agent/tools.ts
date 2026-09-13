@@ -196,7 +196,7 @@ export function createServerTools(projectId?: string) {
 
 export const clientToolDefs = {
   inspectLiveCanvas: tool({
-    description: 'Inspect the live canvas: scenes, active scene, and nodes. Call this before mutating a canvas you did not just create.',
+    description: 'Inspect the live canvas: scenes, active scene, nodes, and a generationPlan with spend estimate. Call this before mutating a canvas you did not just create. Use generationPlan in the recap — do not generate in the same turn you wrote prompts.',
     inputSchema: z.object({}),
   }),
   addScene: tool({
@@ -266,13 +266,13 @@ export const clientToolDefs = {
     }),
   }),
   generateNode: tool({
-    description: 'Run Generate on an image or video node. Spends the user fal.ai credit.',
+    description: 'Spend fal credit on ONE image or video node. Hard-blocked unless the user already verified the prompt in a later message. Never call this in the same turn you added or edited prompts. Video is very expensive — only after they confirm the spend.',
     inputSchema: z.object({
       nodeId: z.string(),
     }),
   }),
   generateNodes: tool({
-    description: 'Run Generate on several image or video nodes. Spends fal.ai credit for each.',
+    description: 'Spend fal credit on several image or video nodes. Hard-blocked unless the user verified prompts in a later message. Never call this in the same turn you wrote prompts. Video batches are very expensive.',
     inputSchema: z.object({
       nodeIds: z.array(z.string()).min(1).max(20),
     }),
